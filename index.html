@@ -1,18 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/public/ring.svg" />
+    <link rel="icon" type="image/svg+xml" href="/ring.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Claire & Connor</title>
   </head>
   <body>
     <div id="app">
-      <div class="title">
-        <h1>Claire & Connor</h1>
-        <h3>What the heck</h3>
+      <div class="menu-bar">
+        <p class="menu-bar-item" data-section="welcome">Welcome</p>
+        <p class="menu-bar-item" data-section="schedule">Schedule</p>
+        <p class="menu-bar-item" data-section="lodging">Lodging</p>
+        <p class="menu-bar-item" data-section="dress-code">Dress Code</p>
+        <p class="menu-bar-item" data-section="rsvp">RSVP</p>
       </div>
+      <section id="welcome" class="section welcome">
+        <div class="section-content">
+          <!-- <h1 class="title-text">Claire & Connor are getting married!</h1> -->
+          <h1 class="title-text">CLAIRE & CONNOR ARE GETTING MARRIED!</h1>
+          <h5 class="sub-title-text">June 20, 2026</h5>
+          <a class="sub-title-text" href="https://maps.app.goo.gl/8dBG2aU3qs3m7Rbo7">
+            <p>North Bend, Washington</p>
+          </a>
+        </div>
+        <img src="/images/clay_peace_2.png" class="section-img" />
+      </section>
+
+      <section id="schedule" class="section schedule">
+        <img src="/images/clay_peace_2.png" class="section-img" />
+
+        <div class="section-content">
+          <p class="normal-text">first we do thing 1 a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a</p>
+          <p class="normal-text">second we do thing 2</p>
+          <p class="normal-text">third we do thing 3</p>
+          <p class="normal-text">fourth we do thing 4</p>
+          <p class="normal-text">fifth we do thing 5</p>
+          <p class="normal-text">sixth we do thing 6</p>
+          <p class="normal-text">seventh we do thing 7</p>
+          <p class="normal-text">eighth we do thing 8</p>
+        </div>
+      </section>
+      <section id="lodging" class="section lodging">
+        <div class="section-content">
+          <p class="normal-text">first we do thing 1</p>
+          <p class="normal-text">second we do thing 2</p>
+        </div>
+        <img src="/images/clay_peace_2.png" class="section-img" />
+      </section>
+      <section id="dress-code" class="section dress-code">
+        <div class="section-content">
+          <p class="normal-text">first we do thing 1</p>
+          <p class="normal-text">second we do thing 2</p>
+        </div>
+        <img src="/images/clay_peace_2.png" class="section-img" />
+      </section>
+      <section id="rsvp" class="section rsvp">
+        <div class="section-content">
+          <p class="normal-text">first we do thing 1</p>
+          <p class="normal-text">second we do thing 2</p>
+        </div>
+        <img src="/images/clay_peace_2.png" class="section-img" />
+      </section>
     </div>
     <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/router.ts"></script>
   </body>
 </html>
