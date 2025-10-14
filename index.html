@@ -1,109 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/ring.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Claire & Connor</title>
-  </head>
-  <body>
-    <div id="app">
-      <div class="menu-bar">
-        <p class="menu-bar-item" data-section="welcome">Welcome</p>
-        <p class="menu-bar-item" data-section="lodging">Lodging</p>
-        <p class="menu-bar-item" data-section="schedule">Schedule</p>
-        <p class="menu-bar-item" data-section="what-to-wear">What to Wear</p>
-        <p class="menu-bar-item" data-section="rsvp">RSVP</p>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/ring.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claire & Connor</title>
+</head>
+
+<body>
+  <div id="app">
+    <div class="menu-bar">
+      <p class="menu-bar-item" data-section="welcome">Welcome</p>
+      <p class="menu-bar-item" data-section="lodging">When/Where</p>
+      <p class="menu-bar-item" data-section="schedule">Schedule</p>
+      <p class="menu-bar-item" data-section="what-to-wear">What to Wear</p>
+      <p class="menu-bar-item" data-section="rsvp">RSVP</p>
+      <p class="menu-bar-item" data-section="faqs">FAQs</p>
+    </div>
+    <section id="welcome" class="section welcome">
+      <div class="section-content">
+        <!-- <h1 class="title-text">Claire & Connor are getting married!</h1> -->
+        <h1 class="title-text">CLAIRE & CONNOR ARE GETTING MARRIED!</h1>
+        <h5 class="sub-title-text">Juneuary 91, 3026</h5>
+        <!-- <a class="sub-title-text" href="https://maps.app.goo.gl/8dBG2aU3qs3m7Rbo7"> -->
+        <a class="sub-title-text" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+          <p>North Bend, Washington</p>
+        </a>
       </div>
-      <section id="welcome" class="section welcome">
-        <div class="section-content">
-          <!-- <h1 class="title-text">Claire & Connor are getting married!</h1> -->
-          <h1 class="title-text">CLAIRE & CONNOR ARE GETTING MARRIED!</h1>
-          <h5 class="sub-title-text">Juneuary 91, 3026</h5>
-          <!-- <a class="sub-title-text" href="https://maps.app.goo.gl/8dBG2aU3qs3m7Rbo7"> -->
-          <a class="sub-title-text" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
-            <p>North Bend, Washington</p>
-          </a>
-        </div>
-        <img src="/images/clay_peace_2.png" class="section-img" />
-      </section>
-      <section id="lodging" class="section lodging">
-        <img src="/images/clay_peace_2.png" class="section-img" />
-        <div class="section-content">
-          <p class="normal-text">first we do thing 1</p>
-          <p class="normal-text">second we do thing 2</p>
-        </div>
-      </section>
+      <img src="/images/clay_peace_2.png" class="section-img" />
+    </section>
+    <section id="lodging" class="section lodging">
+      <img src="/images/lounge.png" class="section-img" />
+      <div class="section-content">
+        <p class="normal-text">first we do thing 1</p>
+        <p class="normal-text">second we do thing 2</p>
+      </div>
+    </section>
 
-      <section id="schedule" class="section schedule">
-        <img src="/images/claire_point.png" class="section-img point" />
+    <section id="schedule" class="section schedule">
+      <img src="/images/claire_point.png" class="section-img point" />
 
-        <div class="section-content horizontal">
-          <div class="schedule-day">
-          <p class="normal-text">
-            Friday
-          </p>
-          <div class="schedule-item">4pm - Check in</div>
-          <div class="schedule-item">6:30pm - Welcome dinner</div>
-          <div class="schedule-item">8:30pm - Hang out & settle in</div>
-        </div>
+      <div class="section-content">
+        <div class="horizontal-schedule">
           <div class="schedule-day">
             <p class="normal-text">
-              Saturday
+              <strong>Friday</strong>
             </p>
-            <div class="schedule-item">8am - Check in</div>
-            <div class="schedule-item">6:30pm - Welcome dinner</div>
-            <div class="schedule-item">8:30pm - Hang out & settle in</div>
-            <div class="schedule-item">8am - Check in</div>
-            <div class="schedule-item">6:30pm - Welcome dinner</div>
-            <div class="schedule-item">8:30pm - Hang out & settle in</div>
-            <div class="schedule-item">8am - Check in</div>
-            <div class="schedule-item">6:30pm - Welcome dinner</div>
-            <div class="schedule-item">8:30pm - Hang out & settle in</div>
-        </div>
-        <div class="schedule-day">
-          <p class="normal-text">
-            Sunday
-          </p>
-          <div class="schedule-item">8:30pm - Hang out & settle in</div>
-          <div class="schedule-item">8am - Check in</div>
-          <div class="schedule-item">6:30pm - Welcome dinner</div>
-          <div class="schedule-item">8:30pm - Hang out & settle in</div>
+            <div class="schedule-item">4pm: Check in</div>
+            <div class="schedule-item">6:30pm: Welcome dinner</div>
+            <div class="schedule-item">8:30pm: Hang out & settle in</div>
+          </div>
+          <div class="schedule-day">
+            <p class="normal-text">
+              <strong>Saturday</strong>
+            </p>
+            <div class="schedule-item">8am: Check in</div>
+            <div class="schedule-item">6:30pm: Welcome dinner</div>
+            <div class="schedule-item">8:30pm: Hang out & settle in</div>
+            <div class="schedule-item">8am: Check in</div>
+            <div class="schedule-item">6:30pm: Welcome dinner</div>
+            <div class="schedule-item">8:30pm: Hang out & settle in</div>
+            <div class="schedule-item">8am: Check in</div>
+            <div class="schedule-item">6:30pm: Welcome dinner</div>
+            <div class="schedule-item">8:30pm: Hang out & settle in</div>
+          </div>
+          <div class="schedule-day">
+            <p class="normal-text">
+              <strong>Sunday</strong>
+            </p>
+            <div class="schedule-item">8:30pm: Hang out & settle in</div>
+            <div class="schedule-item">8am: Check in</div>
+            <div class="schedule-item">6:30pm: Welcome dinner</div>
+            <div class="schedule-item">8:30pm: Hang out & settle in</div>
+          </div>
         </div>
       </div>
-      </section>
-      <section id="what-to-wear" class="section what-to-wear">
-        <div class="section-content">
-          <p class="section-title-text">Fancy & Fun</p>
-          <p class="normal-text">We invite you to have fun with it!</p>
-          <div>
-            This is the perfect occassion to wear that one
-            fancy outfit in your closet (you know the one), or to spruce up your 
-            favorite suit with a whimsical tie
-          </div>
-        <br/>
-          <p class="normal-text">
-            For those who might wear heels: 
-            <div class="tabbed">From cocktail to formal</div>
-            <div class="tabbed">We'll be in the grass, so bring appropriate footwear</div>
-          </p>
-          <p class="normal-text">
-            For those who might wear pants:
-            <div class="tabbed"> Anything from slacks & a button up to a full suit</div>
-            <div>Playful attire encouraged</div>
-          </p>
+      <img src="/images/connor_point.png" class="section-img point" />
+    </section>
+    <section id="what-to-wear" class="section what-to-wear">
+      <div class="section-content">
+        <p class="section-title-text">Fancy & Fun</p>
+        <p class="normal-text">
+          <strong>We invite you to have fun with it!</strong>
+        </p>
+        <div>
+          This is the perfect occassion to wear that one
+          fancy outfit in your closet (you know the one), or to spruce up your
+          favorite suit with a whimsical tie
         </div>
-        <img src="/images/clay_peace_2.png" class="section-img" />
-      </section>
-      <section id="rsvp" class="section rsvp">
-        <div class="section-content">
-          <p class="normal-text">first we do thing 1</p>
-          <p class="normal-text">second we do thing 2</p>
-        </div>
-        <img src="/images/clay_peace_2.png" class="section-img" />
-      </section>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
-    <script type="module" src="/src/router.ts"></script>
-  </body>
+        <br />
+        <p class="normal-text">
+          <strong>For those who might wear a dress:</strong>
+        <div class="tabbed">Attire should be cocktail, or anything fancier</div>
+        <div class="tabbed">We'll be in the grass, so bring appropriate footwear</div>
+        </p>
+        <p class="normal-text">
+          <strong>For those who might wear pants:</strong>
+        <div class="tabbed"> Attire should be slacks & a button up, or anything fancier</div>
+        <div>Playful attire encouraged</div>
+        </p>
+      </div>
+      <img src="/images/dancing.png" class="section-img" />
+    </section>
+    <section id="rsvp" class="section rsvp">
+      <img src="/images/clay_peace_2.png" class="section-img" />
+      <div class="section-content">
+        <form id="rsvp-form">
+          First Name:
+          <input type="text" name="first-name" required />
+          Last Name:
+          <input type="text" name="last-name" required />
+          comment:
+          <input type="text" name="comment"/>
+          Coming?
+          <input type="checkbox" name="coming" id="coming" class="chk" />
+          <span class="grid-label overnight-label invisible">Overnight?</span>
+          <input type="checkbox" name="overnight" id="overnight" class="chk invisible" />
+          <button class="submit" type="submit">RSVP</button>
+          <p id="rsvp-status"></p>
+        </form>
+
+      </div>
+    </section>
+    <section id="faqs" class="section faqs">
+      <div class="section-content">
+        <p class="normal-text">first we do thing 1</p>
+        <p class="normal-text">second we do thing 2</p>
+      </div>
+      <img src="/images/clay_peace_2.png" class="section-img" />
+    </section>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+  <script type="module" src="/src/router.ts"></script>
+</body>
+
 </html>
