@@ -139,6 +139,10 @@ body {
   width: 100%;
 }
 
+.horizontal {
+  flex-direction: row;
+}
+
 .section-img {
   width: var(--section-img-width);
   height: 90%;
@@ -165,6 +169,17 @@ body {
   text-decoration: none;
 }
 
+.section-title-text {
+  height: fit-content;
+  font-size: min(5vh, 3vw);
+  margin: 0;
+  margin-top: 0vh;
+  /* margin-bottom: 2vh; */
+  /* color: var(--pop); */
+  text-decoration: none;
+  margin-bottom: 3vh;
+}
+
 .normal-text {
   height: fit-content;
   margin: 0;
@@ -186,12 +201,50 @@ a.sub-title-text p {
 
 /* SCHEDULE SECTION */
 
-.section.schedule {
-  background-color: var(--pop);
+.section.schedule > .section-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: stretch;
+  width: 100%;
+  margin-left: 1vw;
+  margin-right: 0;
+  gap: 2vw;
 }
 
-/* DRESS CODE SECTION */
+.schedule-day {
+  flex: 1 1 0;
+  min-width: 0;
+  margin-top: 10vh;
+  display: flex;
+  flex-direction: column;
+}
 
-.section.dress-code {
+.schedule-day:first-child {
+  margin-left: 0;
+}
+
+.schedule-day:not(:first-child) {
+  /* No additional styles needed—the parent flexbox handles layout */
+  /* align-items: flex-start; */
+  text-align: left;
+}
+
+.schedule-day:last-child {
+  margin-right: 0;
+}
+
+.section-img.point {
+  margin-left: 1vw;
+  margin-right: 1vw;
+}
+
+.schedule-item {
+  margin-bottom: 1vh;
+}
+
+/* What to Wear SECTION */
+
+.section.lodging {
   background-color: var(--pop);
 }
