@@ -15,6 +15,73 @@ const fetchElement = <T extends HTMLElement>(id: string): T | null => {
 
 const dao = new Dao();
 
+// ---- Smooth scroll helper (adjust duration to taste) ----
+function smoothScrollToY(
+  targetY: number,
+  opts: {
+    baseDuration?: number; // duration per 1000px
+    minDuration?: number;
+    maxDuration?: number;
+    easing?: (t: number) => number;
+  } = {}
+) {
+  const startY = window.scrollY;
+  const distance = Math.abs(targetY - startY);
+
+  const baseDuration = opts.baseDuration ?? 700; // ms per 1000px
+  const minDuration = opts.minDuration ?? 300;
+  const maxDuration = opts.maxDuration ?? 1400;
+
+  // Duration scales with distance
+  const duration = Math.min(
+    maxDuration,
+    Math.max(minDuration, (distance / 1000) * baseDuration)
+  );
+
+  const easing =
+    opts.easing ??
+    ((t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); // easeInOutCubic
+
+  // Reduced motion respect
+  const prefersReduced =
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReduced) {
+    window.scrollTo(0, targetY);
+    return;
+  }
+
+  const start = performance.now();
+  const delta = targetY - startY;
+  let canceled = false;
+
+  const cancel = () => {
+    canceled = true;
+    cleanup();
+  };
+  const cleanup = () => {
+    window.removeEventListener("wheel", cancel, { passive: true } as any);
+    window.removeEventListener("touchstart", cancel, { passive: true } as any);
+    window.removeEventListener("keydown", cancel);
+  };
+
+  window.addEventListener("wheel", cancel, { passive: true } as any);
+  window.addEventListener("touchstart", cancel, { passive: true } as any);
+  window.addEventListener("keydown", cancel);
+
+  function tick(now: number) {
+    if (canceled) return;
+    const t = Math.min(1, (now - start) / duration);
+    const y = startY + delta * easing(t);
+    window.scrollTo(0, y);
+    if (t < 1) requestAnimationFrame(tick);
+    else cleanup();
+  }
+
+  requestAnimationFrame(tick);
+}
+
 /** Wire up the RSVP form if it exists on the page */
 function initializeRsvpForm() {
   const form = document.getElementById("rsvp-form") as HTMLFormElement | null;
@@ -163,10 +230,7 @@ function initializeScrollHighlighting() {
         document.querySelector(".menu-bar")?.getBoundingClientRect().height || 0;
       const targetPosition = targetSection.offsetTop - menuBarHeight;
 
-      window.scrollTo({
-        top: targetPosition,
-        behavior: "smooth",
-      });
+      smoothScrollToY(targetPosition);
     });
   });
 
