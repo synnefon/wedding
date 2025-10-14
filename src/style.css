@@ -35,7 +35,9 @@
   --pop: #7a8c63;
   /* --text: #70583b; */
 
-  --section-width: 100vw;
+  --menu-bar-height: max(60px, 7vh);
+  --section-width: max(1281px, 100vw);
+  --section-height: max(720px, 95vh);
 
   font-family: "SUSE_Mono", system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -66,7 +68,7 @@ body {
   align-self: center;
   top: 0;
   width: var(--section-width);
-  height: 7vh;
+  height: var(--menu-bar-height);
   background: var(--bg);
   display: flex;
   flex-direction: row;
@@ -84,7 +86,7 @@ body {
   justify-content: center;
   cursor: pointer;
   font-weight: bold;
-  font-size: min(3vh, 3vw) !important;
+  font-size: x-large !important;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -101,11 +103,10 @@ body {
 /* SECTIONS */
 
 .section {
-  height: 95vh;
+  height: var(--section-height);
   width: var(--section-width);
   display: flex;
   flex-direction: row;
-  font-size: 1.5rem;
 }
 
 .section> :first-child {
@@ -135,6 +136,7 @@ body {
   align-items: left;
   text-align: left;
   width: 100%;
+  font-size: large;
 }
 
 .section-img {
@@ -146,14 +148,15 @@ body {
 .title-text {
   height: fit-content;
   margin: 0;
-  font-size: min(10vh, 6vw);
+  font-size: 480%;
+  /* font-size: min(10vh, 6vw); */
   margin-bottom: 3vh;
   font-weight: normal;
 }
 
 .sub-title-text {
   height: fit-content;
-  font-size: min(4vh, 2vw);
+  font-size: xx-large;
   margin: 0;
   margin-top: 0vh;
   color: var(--text);
@@ -163,7 +166,7 @@ body {
 
 .section-title-text {
   height: fit-content;
-  font-size: min(5vh, 3vw);
+  font-size: xx-large;
   margin: 0;
   margin-top: 0vh;
   text-decoration: none;
@@ -173,12 +176,16 @@ body {
 .normal-text {
   height: fit-content;
   margin: 0;
-  font-size: min(4vh, 2vw);
+  font-size: xx-large;
 }
 
 a.sub-title-text p {
   margin: 0;
   padding: 0;
+}
+
+p.strong {
+  font-size: xx-large;
 }
 
 /* WELCOME SECTION */
@@ -243,7 +250,12 @@ a.sub-title-text p {
 
 .schedule-item {
   margin-bottom: 1vh;
-  font-size: min(2.3vh, 2vw);
+  font-size: large;
+}
+
+/* WHAT TO WEAR */
+div.tabbed {
+  font-size: x-large;
 }
 
 /* RSVP */
@@ -270,7 +282,7 @@ textarea {
   appearance: none;
   -webkit-appearance: none;
   font-family: "SUSE_Mono";
-  font-size: large;
+  font-size: x-large;
   background-color: var(--bg);
 }
 
@@ -376,4 +388,20 @@ input[type="checkbox"]:checked {
 .overnight-label,
 #overnight {
   transition: opacity 0.2s ease;
+}
+
+.section-img.letter {
+  background-size: cover;
+  width: 100%;
+  height: auto;
+}
+
+.section-img-wrapper.letter {
+  width: 30%;
+  height: auto;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  /* margin-bottom: 20%; */
 }

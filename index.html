@@ -3,8 +3,9 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/ring.svg" />
+  <link rel="icon" type="image/svg+xml" href="favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/src/styles.css">
   <title>Claire & Connor</title>
 </head>
 
@@ -84,7 +85,7 @@
         <p class="normal-text">
           <strong>We invite you to have fun with it!</strong>
         </p>
-        <div>
+        <div class="tabbed">
           This is the perfect occassion to wear that one
           fancy outfit in your closet (you know the one), or to spruce up your
           favorite suit with a whimsical tie
@@ -98,21 +99,23 @@
         <p class="normal-text">
           <strong>For those who might wear pants:</strong>
         <div class="tabbed"> Attire should be slacks & a button up, or anything fancier</div>
-        <div>Playful attire encouraged</div>
+        <div class="tabbed">Playful attire encouraged</div>
         </p>
       </div>
       <img src="/images/dancing.png" class="section-img" />
     </section>
     <section id="rsvp" class="section rsvp">
-      <img src="/images/clay_peace_2.png" class="section-img" />
+      <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" class="section-img-wrapper letter">
+        <img src="/images/letter.png" class="section-img letter" />
+      </a>
       <div class="section-content">
         <form id="rsvp-form">
           First Name:
           <input type="text" name="first-name" required />
           Last Name:
           <input type="text" name="last-name" required />
-          comment:
-          <input type="text" name="comment"/>
+          Comment:
+          <input type="text" name="comment" />
           Coming?
           <input type="checkbox" name="coming" id="coming" class="chk" />
           <span class="grid-label overnight-label invisible">Overnight?</span>
@@ -131,6 +134,7 @@
       <img src="/images/clay_peace_2.png" class="section-img" />
     </section>
   </div>
+  <footer class="footer-tile"></footer>
   <script type="module" src="/src/main.ts"></script>
   <script type="module" src="/src/router.ts"></script>
 </body>
