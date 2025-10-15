@@ -61,6 +61,39 @@ body {
   color: var(--text);
 }
 
+/* CUSTOM SCROLLBAR */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-radius: 8px;
+  border: 2px solid var(--pop);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--text) 0%, var(--pop) 100%);
+  border-radius: 6px;
+  border: 1px solid var(--text);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--pop) 0%, var(--text) 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--text);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text) var(--bg);
+}
+
 /* MENU BAR */
 
 .menu-bar {
@@ -74,6 +107,7 @@ body {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  z-index: 100;
 }
 
 .menu-bar-item {
@@ -203,36 +237,97 @@ p.strong {
   width: 100%;
 }
 
-.horizontal-schedule {
-  display: flex;
-  flex-direction: row;
+.schedule-tabs {
   width: 100%;
-  justify-content: space-evenly;
-  align-items: stretch;
   margin-left: 1vw;
   margin-right: 0;
-  gap: 1.5vw;
+  margin-top: 10vh;
 }
 
-.schedule-day {
-  /* flex: 1 1 0; */
-  margin-top: 5vh;
-  margin-bottom: 0;
-  height: fit-content;
+.tab-navigation {
   display: flex;
+  align-items: center;
+  gap: 1vw;
+  margin-bottom: 2vh;
+  border-bottom: 3px solid var(--text);
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 0;
+  flex: 1;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 1vh 2vw;
+  font-family: "SUSE_Mono";
+  font-size: x-large;
+  font-weight: bold;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 4px solid transparent;
+  position: relative;
+  width: 100%;
+}
+
+.tab-button:hover {
+  color: var(--alt-bg);
+}
+
+.tab-button.active {
+  color: var(--alt-bg);
+  border-bottom-color: var(--alt-bg);
+}
+
+.arrow-button {
+  background: none;
+  border: none;
+  padding: 1vh 1.5vw;
+  font-family: "SUSE_Mono";
+  font-size: xx-large;
+  font-weight: bold;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow-button:hover {
+  color: var(--alt-bg);
+  /* background-color: rgba(209, 121, 67, 0.1); */
+}
+
+.arrow-button:disabled {
+  opacity: 0.3;
+  cursor: auto;
+}
+
+.arrow-button:disabled:hover {
+  color: var(--text);
+  background-color: transparent;
+}
+
+.tab-content {
+  position: relative;
+  min-height: 30vh;
+}
+
+.tab-panel {
+  display: none;
   flex-direction: column;
+  gap: 1vh;
+  padding: 2vh 0;
 }
 
-.schedule-day:first-child {
-  margin-left: 0;
-}
-
-.schedule-day:not(:first-child) {
-  text-align: left;
-}
-
-.schedule-day:last-child {
-  margin-right: 0;
+.tab-panel.active {
+  display: flex;
 }
 
 .section-img.point {
@@ -250,7 +345,11 @@ p.strong {
 
 .schedule-item {
   margin-bottom: 1vh;
-  font-size: large;
+  font-size: x-large;
+}
+
+.schedule-item .time {
+  font-weight: bold;
 }
 
 /* WHAT TO WEAR */

@@ -162,6 +162,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
         // Re-initialize behaviors after content loads
         initializeScrollHighlighting();
+        initializeScheduleTabs();
         // Wire up RSVP form if the current content includes it
         initializeRsvpForm();
 
@@ -182,6 +183,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Initial page already has content; wire everything up
   initializeScrollHighlighting();
+  initializeScheduleTabs();
   initializeRsvpForm();
 });
 
@@ -239,5 +241,126 @@ function initializeScrollHighlighting() {
 
   // Add scroll event listener
   window.addEventListener("scroll", updateActiveMenuItem);
+}
+
+function initializeScheduleTabs() {
+  const tabButtons = document.querySelectorAll(".tab-button");
+  const tabPanels = document.querySelectorAll(".tab-panel");
+  const prevButton = fetchElement<HTMLButtonElement>("prev-tab");
+  const nextButton = fetchElement<HTMLButtonElement>("next-tab");
+
+  if (tabButtons.length === 0 || tabPanels.length === 0) return;
+
+  const tabs = Array.from(tabButtons);
+  const tabIds = tabs.map(btn => btn.getAttribute("data-tab")).filter(Boolean) as string[];
+
+  function switchToTab(targetTab: string) {
+    // Remove active class from all buttons and panels
+    tabButtons.forEach((btn) => btn.classList.remove("active"));
+    tabPanels.forEach((panel) => panel.classList.remove("active"));
+
+    // Add active class to target button and corresponding panel
+    const targetButton = document.querySelector(`[data-tab="${targetTab}"]`);
+    const targetPanel = document.getElementById(targetTab);
+    
+    if (targetButton) {
+      targetButton.classList.add("active");
+    }
+    if (targetPanel) {
+      targetPanel.classList.add("active");
+    }
+
+    // Update arrow button states
+    updateArrowStates(targetTab);
+  }
+
+  function updateArrowStates(currentTab: string) {
+    const currentIndex = tabIds.indexOf(currentTab);
+    
+    if (prevButton) {
+      prevButton.disabled = currentIndex === 0;
+    }
+    if (nextButton) {
+      nextButton.disabled = currentIndex === tabIds.length - 1;
+    }
+  }
+
+  function getCurrentActiveTab(): string | null {
+    const activeButton = document.querySelector(".tab-button.active");
+    return activeButton?.getAttribute("data-tab") || null;
+  }
+
+  function navigateToPrevious() {
+    const currentTab = getCurrentActiveTab();
+    if (!currentTab) return;
+    
+    const currentIndex = tabIds.indexOf(currentTab);
+    if (currentIndex > 0) {
+      switchToTab(tabIds[currentIndex - 1]);
+    }
+  }
+
+  function navigateToNext() {
+    const currentTab = getCurrentActiveTab();
+    if (!currentTab) return;
+    
+    const currentIndex = tabIds.indexOf(currentTab);
+    if (currentIndex < tabIds.length - 1) {
+      switchToTab(tabIds[currentIndex + 1]);
+    }
+  }
+
+  // Add click listeners to tab buttons
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetTab = button.getAttribute("data-tab");
+      if (!targetTab) return;
+      switchToTab(targetTab);
+    });
+  });
+
+  // Add click listeners to arrow buttons
+  if (prevButton) {
+    prevButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      navigateToPrevious();
+    });
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      navigateToNext();
+    });
+  }
+
+  // Add keyboard navigation
+  function handleKeyDown(e: KeyboardEvent) {
+    // Only handle arrow keys when the schedule section is visible
+    const scheduleSection = fetchElement<HTMLDivElement>("schedule");
+    if (!scheduleSection) return;
+    
+    const rect = scheduleSection.getBoundingClientRect();
+    
+    if (rect.top > window.innerHeight || rect.bottom < 0) return;
+
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      switchToTab(tabIds[0]);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      navigateToNext();
+    }
+  }
+
+  // Add keyboard event listener
+  document.addEventListener("keydown", handleKeyDown);
+
+  // Initialize arrow states
+  const currentTab = getCurrentActiveTab();
+  if (currentTab) {
+    updateArrowStates(currentTab);
+  }
 }
 
