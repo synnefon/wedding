@@ -5,7 +5,6 @@ import "./style.css";
 const routes: Record<string, string> = {
   "/": "/index.html",
   "/404": "/pages/404.html",
-  "/rsvp": "/pages/rsvp.html",
 };
 
 const fetchElement = <T extends HTMLElement>(id: string): T | null => {
@@ -15,72 +14,30 @@ const fetchElement = <T extends HTMLElement>(id: string): T | null => {
 
 const dao = new Dao();
 
-// ---- Smooth scroll helper (adjust duration to taste) ----
-function smoothScrollToY(
-  targetY: number,
-  opts: {
-    baseDuration?: number; // duration per 1000px
-    minDuration?: number;
-    maxDuration?: number;
-    easing?: (t: number) => number;
-  } = {}
-) {
-  const startY = window.scrollY;
-  const distance = Math.abs(targetY - startY);
 
-  const baseDuration = opts.baseDuration ?? 700; // ms per 1000px
-  const minDuration = opts.minDuration ?? 300;
-  const maxDuration = opts.maxDuration ?? 1400;
+const initializeMainPageBehavior = () => {
+  initializeScrollHighlighting();
+  initializeScheduleTabs();
+  initializeRsvpForm();
+};
 
-  // Duration scales with distance
-  const duration = Math.min(
-    maxDuration,
-    Math.max(minDuration, (distance / 1000) * baseDuration)
-  );
+window.addEventListener("DOMContentLoaded", () => {
+  const app = document.querySelector<HTMLDivElement>("#app")!;
 
-  const easing =
-    opts.easing ??
-    ((t: number) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); // easeInOutCubic
+  const router = new Router({
+    onRoute: async (path) => {
+      if (routes[path]) {
+        const res = await fetch(routes[path]);
+        app.innerHTML = await res.text();
+        initializeMainPageBehavior();
+      } else {
+        router.navigate("404");
+      }
+    },
+  });
 
-  // Reduced motion respect
-  const prefersReduced =
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReduced) {
-    window.scrollTo(0, targetY);
-    return;
-  }
-
-  const start = performance.now();
-  const delta = targetY - startY;
-  let canceled = false;
-
-  const cancel = () => {
-    canceled = true;
-    cleanup();
-  };
-  const cleanup = () => {
-    window.removeEventListener("wheel", cancel, { passive: true } as any);
-    window.removeEventListener("touchstart", cancel, { passive: true } as any);
-    window.removeEventListener("keydown", cancel);
-  };
-
-  window.addEventListener("wheel", cancel, { passive: true } as any);
-  window.addEventListener("touchstart", cancel, { passive: true } as any);
-  window.addEventListener("keydown", cancel);
-
-  function tick(now: number) {
-    if (canceled) return;
-    const t = Math.min(1, (now - start) / duration);
-    const y = startY + delta * easing(t);
-    window.scrollTo(0, y);
-    if (t < 1) requestAnimationFrame(tick);
-    else cleanup();
-  }
-
-  requestAnimationFrame(tick);
-}
+  router.start();
+});
 
 /** Wire up the RSVP form if it exists on the page */
 function initializeRsvpForm() {
@@ -150,43 +107,6 @@ function initializeRsvpForm() {
   );
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  const app = document.querySelector<HTMLDivElement>("#app")!;
-  let rsvpButton = fetchElement<HTMLButtonElement>("rsvp-btn");
-
-  const router = new Router({
-    onRoute: async (path) => {
-      if (routes[path]) {
-        const res = await fetch(routes[path]);
-        app.innerHTML = await res.text();
-
-        // Re-initialize behaviors after content loads
-        initializeScrollHighlighting();
-        initializeScheduleTabs();
-        // Wire up RSVP form if the current content includes it
-        initializeRsvpForm();
-
-        if (path === "/") {
-          rsvpButton = fetchElement<HTMLButtonElement>("rsvp-btn");
-          rsvpButton?.addEventListener("click", (e) => {
-            e.preventDefault();
-            router.navigate("rsvp");
-          });
-        }
-      } else {
-        router.navigate("404");
-      }
-    },
-  });
-
-  router.start();
-
-  // Initial page already has content; wire everything up
-  initializeScrollHighlighting();
-  initializeScheduleTabs();
-  initializeRsvpForm();
-});
-
 function initializeScrollHighlighting() {
   const sections = document.querySelectorAll(".section");
   const menuItems = document.querySelectorAll(".menu-bar-item");
@@ -243,6 +163,73 @@ function initializeScrollHighlighting() {
   window.addEventListener("scroll", updateActiveMenuItem);
 }
 
+// ---- Smooth scroll helper (adjust duration to taste) ----
+function smoothScrollToY(
+  targetY: number,
+  opts: {
+    baseDuration?: number; // duration per 1000px
+    minDuration?: number;
+    maxDuration?: number;
+    easing?: (t: number) => number;
+  } = {}
+) {
+  const startY = window.scrollY;
+  const distance = Math.abs(targetY - startY);
+
+  const baseDuration = opts.baseDuration ?? 700; // ms per 1000px
+  const minDuration = opts.minDuration ?? 300;
+  const maxDuration = opts.maxDuration ?? 1400;
+
+  // Duration scales with distance
+  const duration = Math.min(
+    maxDuration,
+    Math.max(minDuration, (distance / 1000) * baseDuration)
+  );
+
+  const easing =
+    opts.easing ??
+    ((t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); // easeInOutCubic
+
+  // Reduced motion respect
+  const prefersReduced =
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReduced) {
+    window.scrollTo(0, targetY);
+    return;
+  }
+
+  const start = performance.now();
+  const delta = targetY - startY;
+  let canceled = false;
+
+  const cancel = () => {
+    canceled = true;
+    cleanup();
+  };
+  const cleanup = () => {
+    window.removeEventListener("wheel", cancel, { passive: true } as any);
+    window.removeEventListener("touchstart", cancel, { passive: true } as any);
+    window.removeEventListener("keydown", cancel);
+  };
+
+  window.addEventListener("wheel", cancel, { passive: true } as any);
+  window.addEventListener("touchstart", cancel, { passive: true } as any);
+  window.addEventListener("keydown", cancel);
+
+  function tick(now: number) {
+    if (canceled) return;
+    const t = Math.min(1, (now - start) / duration);
+    const y = startY + delta * easing(t);
+    window.scrollTo(0, y);
+    if (t < 1) requestAnimationFrame(tick);
+    else cleanup();
+  }
+
+  requestAnimationFrame(tick);
+}
+
 function initializeScheduleTabs() {
   const tabButtons = document.querySelectorAll(".tab-button");
   const tabPanels = document.querySelectorAll(".tab-panel");
@@ -262,7 +249,7 @@ function initializeScheduleTabs() {
     // Add active class to target button and corresponding panel
     const targetButton = document.querySelector(`[data-tab="${targetTab}"]`);
     const targetPanel = document.getElementById(targetTab);
-    
+
     if (targetButton) {
       targetButton.classList.add("active");
     }
@@ -276,7 +263,7 @@ function initializeScheduleTabs() {
 
   function updateArrowStates(currentTab: string) {
     const currentIndex = tabIds.indexOf(currentTab);
-    
+
     if (prevButton) {
       prevButton.disabled = currentIndex === 0;
     }
@@ -293,8 +280,9 @@ function initializeScheduleTabs() {
   function navigateToPrevious() {
     const currentTab = getCurrentActiveTab();
     if (!currentTab) return;
-    
+
     const currentIndex = tabIds.indexOf(currentTab);
+    console.log(currentIndex);
     if (currentIndex > 0) {
       switchToTab(tabIds[currentIndex - 1]);
     }
@@ -303,7 +291,7 @@ function initializeScheduleTabs() {
   function navigateToNext() {
     const currentTab = getCurrentActiveTab();
     if (!currentTab) return;
-    
+
     const currentIndex = tabIds.indexOf(currentTab);
     if (currentIndex < tabIds.length - 1) {
       switchToTab(tabIds[currentIndex + 1]);
@@ -337,17 +325,19 @@ function initializeScheduleTabs() {
 
   // Add keyboard navigation
   function handleKeyDown(e: KeyboardEvent) {
+    console.log(e.key)
     // Only handle arrow keys when the schedule section is visible
     const scheduleSection = fetchElement<HTMLDivElement>("schedule");
     if (!scheduleSection) return;
-    
+
     const rect = scheduleSection.getBoundingClientRect();
-    
+
     if (rect.top > window.innerHeight || rect.bottom < 0) return;
 
     if (e.key === "ArrowLeft") {
       e.preventDefault();
-      switchToTab(tabIds[0]);
+      // switchToTab(tabIds[0]);
+      navigateToPrevious();
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
       navigateToNext();
