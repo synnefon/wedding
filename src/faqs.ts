@@ -184,7 +184,7 @@ export function initializeFaqs(dao: Dao) {
                     return;
                 }
 
-                await dao.addFaq({ author, question, answers: [] });
+                await handleAddFaq(dao, author, question);
                 sessionStorage.setItem("faq:lastPostTs", String(now));
                 askForm.reset();
                 setStatus("Posted!", true);
@@ -199,6 +199,10 @@ export function initializeFaqs(dao: Dao) {
 
     // cleanup
     window.addEventListener("beforeunload", () => unsubFaqs(), { once: true });
+}
+
+async function handleAddFaq(dao: Dao, author: string, question: string) {
+    await dao.addFaq({ author, question, answers: [] });
 }
 
 // tiny HTML escaper
