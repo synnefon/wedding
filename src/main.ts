@@ -110,6 +110,7 @@ function initializeRsvpForm() {
 function initializeScrollHighlighting() {
   const sections = document.querySelectorAll(".section");
   const menuItems = document.querySelectorAll(".menu-bar-item");
+  console.log(menuItems)
 
   if (sections.length === 0 || menuItems.length === 0) return;
 
@@ -130,6 +131,7 @@ function initializeScrollHighlighting() {
 
     // Update menu items
     menuItems.forEach((item, index) => {
+      console.log(item, index, activeSectionIndex)
       if (index === activeSectionIndex) {
         item.classList.add("active");
       } else {
@@ -141,6 +143,7 @@ function initializeScrollHighlighting() {
   // Add click event listeners to menu items
   menuItems.forEach((item) => {
     item.addEventListener("click", (e) => {
+      console.log(e)
       e.preventDefault();
       const sectionId = item.getAttribute("data-section");
       if (!sectionId) return;
