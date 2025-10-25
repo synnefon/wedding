@@ -581,7 +581,7 @@ input[type="checkbox"]:checked {
 /* Cards */
 .faq-card {
   padding: .9rem 1rem;
-  border: 3px solid var(--text);
+  border: 2px solid var(--text);
   border-radius: 6px;
   backdrop-filter: blur(2px);
   background-color: var(--bg);
@@ -609,7 +609,7 @@ input[type="checkbox"]:checked {
 /* Replies box with caret toggle */
 .faq-answers {
   margin-top: .5rem;
-  border: 2px solid var(--text);
+  border: 1px solid var(--text);
   border-radius: 6px;
   background-color: var(--shifted-bg);
   overflow: clip;

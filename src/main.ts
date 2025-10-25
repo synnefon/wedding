@@ -1,6 +1,6 @@
 import { Dao, type RSVP } from "./Dao";
 import { Router } from "./router";
-import { initializeFaqs } from "./faqs"; // 👈 new
+import { initializeFaqs } from "./faqs";
 import "./style.css";
 
 const routes: Record<string, string> = {
