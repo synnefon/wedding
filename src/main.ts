@@ -112,7 +112,6 @@ function initializeRsvpForm() {
 function initializeScrollHighlighting() {
   const sections = document.querySelectorAll(".section");
   const menuItems = document.querySelectorAll(".menu-bar-item");
-  console.log(menuItems)
 
   if (sections.length === 0 || menuItems.length === 0) return;
 
@@ -133,7 +132,6 @@ function initializeScrollHighlighting() {
 
     // Update menu items
     menuItems.forEach((item, index) => {
-      console.log(item, index, activeSectionIndex)
       if (index === activeSectionIndex) {
         item.classList.add("active");
       } else {
@@ -287,7 +285,6 @@ function initializeScheduleTabs() {
     if (!currentTab) return;
 
     const currentIndex = tabIds.indexOf(currentTab);
-    console.log(currentIndex);
     if (currentIndex > 0) {
       switchToTab(tabIds[currentIndex - 1]);
     }
@@ -330,7 +327,6 @@ function initializeScheduleTabs() {
 
   // Add keyboard navigation
   function handleKeyDown(e: KeyboardEvent) {
-    console.log(e.key)
     // Only handle arrow keys when the schedule section is visible
     const scheduleSection = fetchElement<HTMLDivElement>("schedule");
     if (!scheduleSection) return;
