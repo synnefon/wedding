@@ -29,11 +29,9 @@
 :root {
   --bg: #f2e4c5;
   --alt-bg: #d17943;
-  /* --text: #1d1d81; */
-  --text: rgb(58, 58, 58);
+  --text: #3a3a3a;
   --alt-text: #f2e4c5;
   --pop: #7a8c63;
-  /* --text: #70583b; */
 
   --menu-bar-height: max(60px, 7vh);
   --section-width: max(1281px, 100vw);
