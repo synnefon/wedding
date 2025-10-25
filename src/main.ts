@@ -1,23 +1,22 @@
 import { Dao, type RSVP } from "./Dao";
 import { Router } from "./router";
+import { initializeFaqs } from "./faqs"; // 👈 new
 import "./style.css";
 
 const routes: Record<string, string> = {
   "/404": "/pages/404.html",
 };
 
-const fetchElement = <T extends HTMLElement>(id: string): T | null => {
-  const elem = document.getElementById(id) as T | null;
-  return elem;
-};
+const fetchElement = <T extends HTMLElement>(id: string): T | null =>
+  document.getElementById(id) as T | null;
 
 const dao = new Dao();
-
 
 const initializeMainPageBehavior = () => {
   initializeScrollHighlighting();
   initializeScheduleTabs();
   initializeRsvpForm();
+  initializeFaqs(dao); // 👈 pass dao in
 };
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -41,7 +40,7 @@ window.addEventListener("DOMContentLoaded", () => {
   router.start();
 });
 
-/** Wire up the RSVP form if it exists on the page */
+/** RSVP */
 function initializeRsvpForm() {
   const form = document.getElementById("rsvp-form") as HTMLFormElement | null;
   const statusEl = document.getElementById("rsvp-status") as HTMLParagraphElement | null;
@@ -59,7 +58,7 @@ function initializeRsvpForm() {
   toggleOvernight(!!comingEl?.checked);
   comingEl?.addEventListener("change", () => toggleOvernight(!!comingEl.checked));
 
-  if (!form) return; // Not on a page/section with the form—nothing to do.
+  if (!form) return;
 
   const setStatus = (msg: string, ok = false) => {
     if (!statusEl) return;
@@ -68,12 +67,10 @@ function initializeRsvpForm() {
     statusEl.classList.add(ok ? "ok" : "err");
   };
 
-  // Ensure we don't stack multiple listeners if this is re-run after router swaps
   form.addEventListener(
     "submit",
     async (e) => {
       e.preventDefault();
-
       if (!submitBtn) return;
       submitBtn.disabled = true;
 
@@ -91,24 +88,21 @@ function initializeRsvpForm() {
         const rsvp: RSVP = { firstName, lastName, comment, coming, overnight };
 
         await dao.addRsvp(rsvp);
-        if (rsvp.coming) {
-          setStatus("🎉 See you there!", true);
-        } else {
-          setStatus("Response recorded", true);
-        }
+        setStatus(rsvp.coming ? "🎉 See you there!" : "Response recorded", true);
         form.reset();
         toggleOvernight(false);
       } catch (err) {
         console.error(err);
-        setStatus("Oops—couldn’t save your RSVP. Try again?", false);
+        setStatus("Oops—couldn't save your RSVP. Try again?", false);
       } finally {
         submitBtn.disabled = false;
       }
     },
-    { once: true } // prevent duplicate handlers on re-init
+    { once: true }
   );
 }
 
+/** Menu scroll highlight + smooth scroll */
 function initializeScrollHighlighting() {
   const sections = document.querySelectorAll(".section");
   const menuItems = document.querySelectorAll(".menu-bar-item");
@@ -117,60 +111,47 @@ function initializeScrollHighlighting() {
 
   function updateActiveMenuItem() {
     const scrollPosition = window.scrollY + window.innerHeight / 2;
-
     let activeSectionIndex = -1;
 
     sections.forEach((section, index) => {
       const rect = section.getBoundingClientRect();
       const sectionTop = rect.top + window.scrollY;
       const sectionBottom = sectionTop + rect.height;
-
       if (scrollPosition >= sectionTop && scrollPosition <= sectionBottom) {
         activeSectionIndex = index;
       }
     });
 
-    // Update menu items
     menuItems.forEach((item, index) => {
-      if (index === activeSectionIndex) {
-        item.classList.add("active");
-      } else {
-        item.classList.remove("active");
-      }
+      if (index === activeSectionIndex) item.classList.add("active");
+      else item.classList.remove("active");
     });
   }
 
-  // Add click event listeners to menu items
   menuItems.forEach((item) => {
     item.addEventListener("click", (e) => {
-      console.log(e)
       e.preventDefault();
       const sectionId = item.getAttribute("data-section");
       if (!sectionId) return;
       const targetSection = document.getElementById(sectionId);
       if (!targetSection) return;
 
-      // Account for fixed menu bar height
       const menuBarHeight =
         document.querySelector(".menu-bar")?.getBoundingClientRect().height || 0;
       const targetPosition = targetSection.offsetTop - menuBarHeight;
-
       smoothScrollToY(targetPosition);
     });
   });
 
-  // Initial check
   updateActiveMenuItem();
-
-  // Add scroll event listener
   window.addEventListener("scroll", updateActiveMenuItem);
 }
 
-// ---- Smooth scroll helper (adjust duration to taste) ----
+// Smooth scroll helper
 function smoothScrollToY(
   targetY: number,
   opts: {
-    baseDuration?: number; // duration per 1000px
+    baseDuration?: number; // ms per 1000px
     minDuration?: number;
     maxDuration?: number;
     easing?: (t: number) => number;
@@ -179,11 +160,10 @@ function smoothScrollToY(
   const startY = window.scrollY;
   const distance = Math.abs(targetY - startY);
 
-  const baseDuration = opts.baseDuration ?? 700; // ms per 1000px
+  const baseDuration = opts.baseDuration ?? 700;
   const minDuration = opts.minDuration ?? 300;
   const maxDuration = opts.maxDuration ?? 1400;
 
-  // Duration scales with distance
   const duration = Math.min(
     maxDuration,
     Math.max(minDuration, (distance / 1000) * baseDuration)
@@ -191,10 +171,8 @@ function smoothScrollToY(
 
   const easing =
     opts.easing ??
-    ((t: number) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); // easeInOutCubic
+    ((t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2));
 
-  // Reduced motion respect
   const prefersReduced =
     window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -233,11 +211,12 @@ function smoothScrollToY(
   requestAnimationFrame(tick);
 }
 
+/** Schedule tabs */
 function initializeScheduleTabs() {
   const tabButtons = document.querySelectorAll(".tab-button");
   const tabPanels = document.querySelectorAll(".tab-panel");
-  const prevButton = fetchElement<HTMLButtonElement>("prev-tab");
-  const nextButton = fetchElement<HTMLButtonElement>("next-tab");
+  const prevButton = document.getElementById("prev-tab") as HTMLButtonElement | null;
+  const nextButton = document.getElementById("next-tab") as HTMLButtonElement | null;
 
   if (tabButtons.length === 0 || tabPanels.length === 0) return;
 
@@ -245,34 +224,21 @@ function initializeScheduleTabs() {
   const tabIds = tabs.map(btn => btn.getAttribute("data-tab")).filter(Boolean) as string[];
 
   function switchToTab(targetTab: string) {
-    // Remove active class from all buttons and panels
     tabButtons.forEach((btn) => btn.classList.remove("active"));
     tabPanels.forEach((panel) => panel.classList.remove("active"));
 
-    // Add active class to target button and corresponding panel
     const targetButton = document.querySelector(`[data-tab="${targetTab}"]`);
     const targetPanel = document.getElementById(targetTab);
 
-    if (targetButton) {
-      targetButton.classList.add("active");
-    }
-    if (targetPanel) {
-      targetPanel.classList.add("active");
-    }
-
-    // Update arrow button states
+    targetButton?.classList.add("active");
+    targetPanel?.classList.add("active");
     updateArrowStates(targetTab);
   }
 
   function updateArrowStates(currentTab: string) {
     const currentIndex = tabIds.indexOf(currentTab);
-
-    if (prevButton) {
-      prevButton.disabled = currentIndex === 0;
-    }
-    if (nextButton) {
-      nextButton.disabled = currentIndex === tabIds.length - 1;
-    }
+    if (prevButton) prevButton.disabled = currentIndex === 0;
+    if (nextButton) nextButton.disabled = currentIndex === tabIds.length - 1;
   }
 
   function getCurrentActiveTab(): string | null {
@@ -283,24 +249,17 @@ function initializeScheduleTabs() {
   function navigateToPrevious() {
     const currentTab = getCurrentActiveTab();
     if (!currentTab) return;
-
     const currentIndex = tabIds.indexOf(currentTab);
-    if (currentIndex > 0) {
-      switchToTab(tabIds[currentIndex - 1]);
-    }
+    if (currentIndex > 0) switchToTab(tabIds[currentIndex - 1]);
   }
 
   function navigateToNext() {
     const currentTab = getCurrentActiveTab();
     if (!currentTab) return;
-
     const currentIndex = tabIds.indexOf(currentTab);
-    if (currentIndex < tabIds.length - 1) {
-      switchToTab(tabIds[currentIndex + 1]);
-    }
+    if (currentIndex < tabIds.length - 1) switchToTab(tabIds[currentIndex + 1]);
   }
 
-  // Add click listeners to tab buttons
   tabButtons.forEach((button) => {
     button.addEventListener("click", (e) => {
       e.preventDefault();
@@ -310,14 +269,12 @@ function initializeScheduleTabs() {
     });
   });
 
-  // Add click listeners to arrow buttons
   if (prevButton) {
     prevButton.addEventListener("click", (e) => {
       e.preventDefault();
       navigateToPrevious();
     });
   }
-
   if (nextButton) {
     nextButton.addEventListener("click", (e) => {
       e.preventDefault();
@@ -325,19 +282,14 @@ function initializeScheduleTabs() {
     });
   }
 
-  // Add keyboard navigation
   function handleKeyDown(e: KeyboardEvent) {
-    // Only handle arrow keys when the schedule section is visible
-    const scheduleSection = fetchElement<HTMLDivElement>("schedule");
+    const scheduleSection = document.getElementById("schedule") as HTMLDivElement | null;
     if (!scheduleSection) return;
-
     const rect = scheduleSection.getBoundingClientRect();
-
     if (rect.top > window.innerHeight || rect.bottom < 0) return;
 
     if (e.key === "ArrowLeft") {
       e.preventDefault();
-      // switchToTab(tabIds[0]);
       navigateToPrevious();
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
@@ -345,13 +297,8 @@ function initializeScheduleTabs() {
     }
   }
 
-  // Add keyboard event listener
   document.addEventListener("keydown", handleKeyDown);
 
-  // Initialize arrow states
   const currentTab = getCurrentActiveTab();
-  if (currentTab) {
-    updateArrowStates(currentTab);
-  }
+  if (currentTab) updateArrowStates(currentTab);
 }
-

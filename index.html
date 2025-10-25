@@ -124,10 +124,23 @@
     </section>
     <section id="faqs" class="section faqs">
       <div class="section-content">
-        <p class="normal-text">first we do thing 1</p>
-        <p class="normal-text">second we do thing 2</p>
+        <!-- List -->
+        <div id="faq-list" class="faq-list">
+          <!-- Questions render here -->
+        </div>
       </div>
-      <img src="/public/images/cats.png" class="section-img" />
+      <div class="sticky-header">
+        <!-- Ask form -->
+        <form id="faq-form" class="faq-form">
+          <div class="grid">
+            <input type="text" class="faq-author" name="author" placeholder="Your name" required />
+          </div>
+          <textarea class="faq-question" name="question" rows="4" placeholder="Ask us anything…" required></textarea>
+          <button class="faq submit" type="submit">Post Question</button>
+          <p id="faq-status" class="faq-status"></p>
+        </form>
+        <img src="/images/cats.png" class="section-img kitties" />
+      </div>
     </section>
   </div>
   <footer class="footer-tile"></footer>

@@ -1,5 +1,17 @@
 import { initializeApp } from "firebase/app";
-import { doc, Firestore, getFirestore, setDoc } from "firebase/firestore";
+import {
+    addDoc,
+    arrayUnion,
+    collection,
+    doc, Firestore, getFirestore,
+    onSnapshot,
+    orderBy,
+    query,
+    serverTimestamp,
+    setDoc,
+    updateDoc,
+} from "firebase/firestore";
+
 
 // Your Firebase project configuration
 const firebaseConfig = {
@@ -20,6 +32,18 @@ export interface RSVP {
     overnight: boolean;
 }
 
+export interface FAQ {
+    author: string;
+    question: string;
+    createdAt?: any; // Firestore timestamp
+    answers?: FAQReply[];
+}
+
+export interface FAQReply {
+    author: string;
+    text: string;
+}
+
 export class Dao {
     private db: Firestore;
 
@@ -31,9 +55,55 @@ export class Dao {
     }
 
     public async addRsvp(rsvp: RSVP) {
-        const fkey = rsvp.firstName.toLowerCase();
-        const lkey = rsvp.lastName.toLowerCase();
-        const key = `${fkey}_${lkey}`.trim().replace(" ", "_");
+        const fkey = (rsvp.firstName || "").trim().toLowerCase().replace(/\s+/g, "_");
+        const lkey = (rsvp.lastName || "").trim().toLowerCase().replace(/\s+/g, "_");
+        const key = (fkey && lkey) ? `${fkey}_${lkey}` : `anon_${crypto.randomUUID()}`;
         await setDoc(doc(this.db, "responses", key), rsvp);
+    }
+
+    // --- FAQ methods ---
+
+    public async addFaq(faq: FAQ) {
+        await addDoc(collection(this.db, "faqs"), {
+            ...faq,
+            author: faq.author.toUpperCase(),
+            createdAt: serverTimestamp(),
+            answers: [] // 👈 initialize empty array
+        });
+    }
+
+    /** Subscribe to ordered list of FAQs (newest first) */
+    public onFaqs(cb: (items: Array<{ id: string; data: FAQ }>) => void) {
+        const q = query(collection(this.db, "faqs"), orderBy("createdAt", "desc"));
+        return onSnapshot(q, (snap) => {
+            const items = snap.docs.map(d => ({ id: d.id, data: d.data() as FAQ }));
+            cb(items);
+        });
+    }
+
+    /** Subscribe to replies under an FAQ (oldest first for reading order) */
+    public onFaqReplies(
+        faqId: string,
+        cb: (items: Array<{ id: string; data: FAQReply }>) => void
+    ) {
+        const qy = query(
+            collection(this.db, "faqs", faqId, "replies"),
+            orderBy("createdAt", "asc")
+        );
+        return onSnapshot(qy, (snap) => {
+            const items = snap.docs.map(d => ({ id: d.id, data: d.data() as FAQReply }));
+            cb(items);
+        });
+    }
+
+
+    public async addFaqAnswer(faqId: string, reply: FAQReply) {
+        const ref = doc(this.db, "faqs", faqId);
+        await updateDoc(ref, {
+            answers: arrayUnion({
+                author: reply.author.toUpperCase(),
+                text: reply.text,
+            }),
+        });
     }
 }
