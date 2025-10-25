@@ -24,7 +24,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const app = document.querySelector<HTMLDivElement>("#app")!;
 
   const router = new Router({
-    onRoute: async (path) => {
+    onRoute: async (path: string) => {
       if (path === "/" || path === "") {
         initializeMainPageBehavior();
         return;
