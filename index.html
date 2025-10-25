@@ -6,8 +6,8 @@
   <link rel="icon" type="image/svg+xml" href="/assets/favicon-CMwZzO0B.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Claire & Connor</title>
-  <script type="module" crossorigin src="/assets/index-lEn8yx8c.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BFQ62EtN.css">
+  <script type="module" crossorigin src="/assets/index-Fq9UhBpW.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DiKow_Rr.css">
 </head>
 
 <body>
@@ -123,24 +123,21 @@
       </div>
     </section>
     <section id="faqs" class="section faqs">
-      <div class="section-content">
-        <!-- List -->
-        <div id="faq-list" class="faq-list">
-          <!-- Questions render here -->
-        </div>
+      <div class="faq-scroll">
+        <div class="faq-list" id="faq-list"></div>
       </div>
-      <div class="sticky-header">
-        <!-- Ask form -->
+      <aside class="faq-right">
         <form id="faq-form" class="faq-form">
           <div class="grid">
             <input type="text" class="faq-author" name="author" placeholder="Your name" required />
           </div>
           <textarea class="faq-question" name="question" rows="4" placeholder="Ask us anything…" required></textarea>
-          <button class="faq submit" type="submit">Post question</button>
+          <button class="submit faq" type="submit">Post question</button>
           <p id="faq-status" class="faq-status"></p>
         </form>
-        <img src="/images/cats.png" class="section-img kitties" />
-      </div>
+
+        <img src="/images/cats.png" class="section-img kitties" alt="" />
+      </aside>
     </section>
   </div>
   <footer class="footer-tile"></footer>
