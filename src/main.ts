@@ -3,7 +3,6 @@ import { Router } from "./router";
 import "./style.css";
 
 const routes: Record<string, string> = {
-  "/": "/index.html",
   "/404": "/pages/404.html",
 };
 
@@ -26,7 +25,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
   const router = new Router({
     onRoute: async (path) => {
-      if (routes[path]) {
+      if (path === "/" || path === "") {
+        initializeMainPageBehavior();
+        return;
+      } else if (routes[path]) {
         const res = await fetch(routes[path]);
         app.innerHTML = await res.text();
         initializeMainPageBehavior();
