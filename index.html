@@ -6,8 +6,8 @@
   <link rel="icon" type="image/svg+xml" href="/assets/favicon-CMwZzO0B.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Claire & Connor</title>
-  <script type="module" crossorigin src="/assets/index-BdZcGG6e.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DMw8AeGb.css">
+  <script type="module" crossorigin src="/assets/index-BS38UH50.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-EMVDh0r0.css">
 </head>
 
 <body>
@@ -55,28 +55,21 @@
             <button class="arrow-button right-arrow" id="next-tab" aria-label="Next day">→</button>
           </div>
           <div class="tab-content">
-            <div class="tab-panel active" id="friday">
+            COMING SOON
+            <!-- <div class="tab-panel active" id="friday">
               <div class="schedule-item"><span class="time">4:00pm:</span> Check in</div>
               <div class="schedule-item"><span class="time">6:30pm:</span> Welcome dinner</div>
               <div class="schedule-item"><span class="time">8:30pm:</span> Hang out & settle in</div>
             </div>
             <div class="tab-panel" id="saturday">
-              <div class="schedule-item"><span class="time">8:00am:</span> Check in</div>
-              <div class="schedule-item"><span class="time">6:30pm:</span> Welcome dinner</div>
-              <div class="schedule-item"><span class="time">8:30pm:</span> Hang out & settle in</div>
-              <div class="schedule-item"><span class="time">8:00am:</span> Check in</div>
-              <div class="schedule-item"><span class="time">6:30pm:</span> Welcome dinner</div>
-              <div class="schedule-item"><span class="time">8:30pm:</span> Hang out & settle in</div>
-              <div class="schedule-item"><span class="time">8:00am:</span> Check in</div>
-              <div class="schedule-item"><span class="time">6:30pm:</span> Welcome dinner</div>
-              <div class="schedule-item"><span class="time">8:30pm:</span> Hang out & settle in</div>
+              <div class="schedule-item"><span class="time">8:00am:</span> COMING SOON</div>
             </div>
             <div class="tab-panel" id="sunday">
               <div class="schedule-item"><span class="time">8:30pm:</span> Hang out & settle in</div>
               <div class="schedule-item"><span class="time">8:00am:</span> Check in</div>
               <div class="schedule-item"><span class="time">6:30pm:</span> Welcome dinner</div>
               <div class="schedule-item"><span class="time">8:30pm:</span> Hang out & settle in</div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -113,7 +106,7 @@
       </a>
       <div class="section-content">
         <form id="rsvp-form">
-          First Name:
+          <!-- First Name:
           <input type="text" name="first-name" required />
           Last Name:
           <input type="text" name="last-name" required />
@@ -124,17 +117,31 @@
           <span class="grid-label overnight-label invisible">Overnight?</span>
           <input type="checkbox" name="overnight" id="overnight" class="chk invisible" />
           <button class="submit" type="submit">RSVP</button>
-          <p id="rsvp-status"></p>
+          <p id="rsvp-status"></p> -->
+          COMING SOON
         </form>
 
       </div>
     </section>
     <section id="faqs" class="section faqs">
       <div class="section-content">
-        <p class="normal-text">first we do thing 1</p>
-        <p class="normal-text">second we do thing 2</p>
+        <!-- List -->
+        <div id="faq-list" class="faq-list">
+          <!-- Questions render here -->
+        </div>
       </div>
-      <img src="/assets/cats-C0YUeLrF.png" class="section-img" />
+      <div class="sticky-header">
+        <!-- Ask form -->
+        <form id="faq-form" class="faq-form">
+          <div class="grid">
+            <input type="text" class="faq-author" name="author" placeholder="Your name" required />
+          </div>
+          <textarea class="faq-question" name="question" rows="4" placeholder="Ask us anything…" required></textarea>
+          <button class="faq submit" type="submit">Post Question</button>
+          <p id="faq-status" class="faq-status"></p>
+        </form>
+        <img src="/images/cats.png" class="section-img kitties" />
+      </div>
     </section>
   </div>
   <footer class="footer-tile"></footer>
