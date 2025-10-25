@@ -100,6 +100,14 @@ body {
   align-self: right;
 }
 
+.sub-title-text.link {
+  height: fit-content;
+  width: fit-content;
+}
+.sub-title-text.link:hover {
+  color: var(--pop);
+}
+
 /* MENU BAR */
 .menu-bar {
   position: fixed;
