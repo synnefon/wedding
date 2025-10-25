@@ -492,14 +492,14 @@ input[type="checkbox"]:checked {
   display: grid;
   grid-template-columns: 65% 35%;
   gap: 20px;
-  align-items: start;
+  align-items: start;              /* stop cross-axis stretching */
   justify-content: center;
   width: var(--section-width);
   padding-top: 3rem;
   padding-bottom: 3rem;
   box-sizing: border-box;
-  height: fit-content;
-  /* don't force viewport height */
+  height: fit-content;             /* let section grow with content */
+  /* no overflow on ancestors of sticky! */
 }
 
 /* Left column: list */
@@ -511,16 +511,22 @@ input[type="checkbox"]:checked {
   margin: 0;
 }
 
-/* Right column: ask form */
+/* Right column: single sticky wrapper that holds form + image */
+.faq-right {
+  position: sticky;
+  top: calc(var(--menu-bar-height) + 1rem);
+  align-self: start;               /* anchor at top of its grid cell */
+  display: grid;
+  gap: 1rem;
+  width: 90%;
+  max-width: 100%;
+}
+
+/* IMPORTANT: children are NOT sticky anymore */
 .faq-form {
   display: grid;
   gap: .75rem;
-  width: 90%;
-  max-width: 100%;
   margin: 0;
-  position: sticky;
-  top: calc(var(--menu-bar-height) + 1rem);
-  align-self: start;
 }
 
 .faq-form .grid {
@@ -529,13 +535,9 @@ input[type="checkbox"]:checked {
   grid-template-columns: 1fr 1fr;
 }
 
-.faq-form.grid .faq-status.ok {
-  color: var(--bg);
-}
-
-.faq-status.err {
-  color: #c33;
-}
+/* status colors */
+.faq-form.grid .faq-status.ok { color: var(--bg); }
+.faq-status.err { color: #c33; }
 
 /* Cards */
 .faq-card {
@@ -556,9 +558,7 @@ input[type="checkbox"]:checked {
   opacity: .8;
 }
 
-.faq-meta {
-  color: var(--pop);
-}
+.faq-meta { color: var(--pop); }
 
 .faq-q {
   margin: .4rem 0 .2rem;
@@ -579,10 +579,7 @@ input[type="checkbox"]:checked {
   background: #fff;
   cursor: pointer;
 }
-
-.faq-btn[disabled] {
-  cursor: default;
-}
+.faq-btn[disabled] { cursor: default; }
 
 /* Replies box with embedded caret toggle */
 .faq-answers {
@@ -596,10 +593,7 @@ input[type="checkbox"]:checked {
   font-family: "SUSE_Mono", system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-size: small;
 }
-
-.faq-answers.collapsed .answers-body {
-  display: none;
-}
+.faq-answers.collapsed .answers-body { display: none; }
 
 .answers-header {
   width: 100%;
@@ -614,7 +608,6 @@ input[type="checkbox"]:checked {
   font: inherit;
   transition: background-color .2s ease;
 }
-
 .answers-header:hover {
   background-color: color-mix(in srgb, var(--shifted-bg) 85%, black 15%);
 }
@@ -628,14 +621,9 @@ input[type="checkbox"]:checked {
   transform: rotate(0deg);
   transition: transform .18s ease;
 }
+.caret.open { transform: rotate(90deg); }
 
-.caret.open {
-  transform: rotate(90deg);
-}
-
-.answers-title {
-  font-size: .95rem;
-}
+.answers-title { font-size: .95rem; }
 
 .answers-body {
   padding: .5rem .6rem .6rem;
@@ -644,159 +632,69 @@ input[type="checkbox"]:checked {
   font-size: .92rem;
 }
 
-.faq-a {
-  margin-left: 2px;
-}
+.faq-a { margin-left: 2px; }
+.faq-a-head { font-size: .9rem; opacity: .85; margin-bottom: .15rem; }
+.faq-a-body { white-space: pre-wrap; }
 
-.faq-a-head {
-  font-size: .9rem;
-  opacity: .85;
-  margin-bottom: .15rem;
-}
-
-.faq-a-body {
-  white-space: pre-wrap;
-}
-
-/* Inline reply (tiny) */
-.faq-reply-inline {
-  margin-top: .5rem;
-}
-
+/* Inline reply (uniform row height) */
+.faq-reply-inline { margin-top: .5rem; }
 .reply-toggle {
-  border: none;
-  background: none;
-  cursor: pointer;
+  border: none; background: none; cursor: pointer;
   font-family: "SUSE_Mono", system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-size: small;
 }
+.reply-toggle:hover { color: var(--pop); }
 
-.reply-toggle:hover {
-  color: var(--pop);
-}
-
-/* ---- Reply row alignment (pixel-perfect) ---- */
 .faq-reply-form {
   --reply-row-h: 2.4rem;
-  /* single uniform height */
-  display: flex;
-  align-items: center;
-  /* vertical centering for all children */
-  gap: 0.5rem;
-  margin-top: .25rem;
-  width: 100%;
+  display: flex; align-items: center; gap: .5rem; margin-top: .25rem; width: 100%;
 }
-
 .faq-reply-form input,
 .faq-reply-form .reply-submit,
 .faq-reply-form .reply-cancel {
-  height: var(--reply-row-h);
-  box-sizing: border-box;
-  border: 2px solid var(--text);
-  border-radius: 4px;
-  font-size: 0.95rem;
-  -webkit-appearance: none;
-  appearance: none;
+  height: var(--reply-row-h); box-sizing: border-box;
+  border: 2px solid var(--text); border-radius: 4px; font-size: .95rem;
+  -webkit-appearance: none; appearance: none;
 }
-
-/* Inputs */
-.faq-reply-form input {
-  padding: 0 0.6rem;
-  /* horizontal only; vertical via fixed height */
-  line-height: 1.1;
-}
-
-.faq-reply-form input.faq-reply-author {
-  width: 30%;
-}
-
-.faq-reply-form input.faq-reply-text {
-  flex: 1;
-}
-
+.faq-reply-form input { padding: 0 .6rem; line-height: 1.1; }
+.faq-reply-form input.faq-reply-author { width: 30%; }
+.faq-reply-form input.faq-reply-text { flex: 1; }
 .faq-reply-form input.faq-reply-author:focus-visible,
 .faq-reply-form input.faq-reply-text:focus-visible {
-  outline: 1px dashed var(--bg);
-  border-color: var(--pop);
-  outline-offset: 2px;
-  box-shadow: none;
+  outline: 1px dashed var(--bg); border-color: var(--pop); outline-offset: 2px; box-shadow: none;
 }
-
-/* Buttons */
 .faq-reply-form .reply-submit,
 .faq-reply-form .reply-cancel {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 0.8rem;
-  background: var(--bg);
-  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 .8rem; background: var(--bg); cursor: pointer;
 }
-
-/* Hover */
 .faq-reply-form .reply-submit:hover,
-.faq-reply-form .reply-cancel:hover {
-  color: var(--pop);
-  border-color: var(--pop);
-}
-
-/* Keep the × square — invisible border */
+.faq-reply-form .reply-cancel:hover { color: var(--pop); border-color: var(--pop); }
 .faq-reply-form .reply-cancel {
-  width: var(--reply-row-h);
-  min-width: var(--reply-row-h);
-  padding: 0;
-  background: transparent;
-  border: none;
-  margin: 0px;
+  width: var(--reply-row-h); min-width: var(--reply-row-h);
+  padding: 0; background: transparent; border: none; margin: 0;
   font-size: x-large;
-  height: fit-content;
-  align-self: center;
-  justify-self: center;
-  /* invisible */
 }
-
-.faq-reply-form.hidden {
-  display: none;
-}
+.faq-reply-form.hidden { display: none; }
 
 /* Ask form inputs */
-.faq-question,
-.faq-question:active,
-.faq-author,
-.faq-author:active {
-  border: 3px solid var(--text);
-  border-radius: 3px;
-  padding: 10px;
+.faq-question, .faq-question:active, .faq-author, .faq-author:active {
+  border: 3px solid var(--text); border-radius: 3px; padding: 10px;
 }
-
-.faq-question:focus-visible,
-.faq-author:focus-visible {
-  outline: 3px dashed var(--alt-bg);
-  border-color: var(--pop);
-  outline-offset: 2px;
-  box-shadow: none;
+.faq-question:focus-visible, .faq-author:focus-visible {
+  outline: 3px dashed var(--alt-bg); border-color: var(--pop); outline-offset: 2px; box-shadow: none;
 }
+.submit.faq { border: 3px solid var(--text); border-radius: 3px; }
+.submit.faq:hover { border-color: var(--pop); color: var(--pop); }
 
-.submit.faq {
-  border: 3px solid var(--text);
-  border-radius: 3px;
-}
-
-.submit.faq:hover {
-  border-color: var(--pop);
-  color: var(--pop);
-}
-
+/* Cats image — not sticky anymore, just lives inside the sticky wrapper */
 .section-img.kitties {
-  position: sticky;
-  top: 0;
-  margin-left: auto;
   width: 70%;
   margin-left: 30%;
   height: auto;
 }
 
-/* --- Responsive: collapse to one column on small screens --- */
+/* Responsive: collapse to one column */
 @media (max-width: 900px) {
   .section.faqs {
     grid-template-columns: 1fr;
@@ -804,9 +702,5 @@ input[type="checkbox"]:checked {
     padding-top: 2rem;
     padding-bottom: 2rem;
   }
-
-  .faq-form {
-    position: static;
-    margin-top: .5rem;
-  }
+  .faq-right { position: static; } /* drop stickiness on small screens */
 }
