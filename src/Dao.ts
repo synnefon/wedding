@@ -3,7 +3,11 @@ import {
     addDoc,
     arrayUnion,
     collection,
-    doc, Firestore, getFirestore,
+    doc,
+    Firestore,
+    getDoc,
+    getDocs,
+    getFirestore,
     onSnapshot,
     orderBy,
     query,
@@ -27,9 +31,20 @@ const firebaseConfig = {
 export interface RSVP {
     firstName: string;
     lastName: string;
-    comment: string;
+    email: string;
+    phone: string;
     coming: boolean;
     overnight: boolean;
+    rainbowLodgeNights?: string[];
+    meals?: string[];
+    dietaryRestrictions?: string[];
+    dietaryNotes?: string;
+}
+
+export interface FamilyResponse {
+    familyKey: string;
+    familyName: string;
+    people: RSVP[];
 }
 
 export interface FAQ {
@@ -59,6 +74,34 @@ export class Dao {
         const lkey = (rsvp.lastName || "").trim().toLowerCase().replace(/\s+/g, "_");
         const key = (fkey && lkey) ? `${fkey}_${lkey}` : `anon_${crypto.randomUUID()}`;
         await setDoc(doc(this.db, "responses", key), rsvp);
+    }
+
+    public async saveFamilyResponse(family: FamilyResponse) {
+        await setDoc(doc(this.db, "responses", family.familyKey), {
+            familyName: family.familyName,
+            people: family.people
+        });
+    }
+
+    public async getFamilyResponse(familyKey: string): Promise<FamilyResponse | null> {
+        const docRef = doc(this.db, "responses", familyKey);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) return null;
+        const data = docSnap.data();
+        return {
+            familyKey,
+            familyName: data.familyName || "",
+            people: data.people || []
+        };
+    }
+
+    public async getAllFamilies(): Promise<Array<{key: string, name: string}>> {
+        const q = query(collection(this.db, "responses"));
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({
+            key: d.id,
+            name: d.data().familyName || d.id
+        }));
     }
 
     // --- FAQ methods ---

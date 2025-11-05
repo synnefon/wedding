@@ -1,4 +1,4 @@
-import { Dao, type RSVP } from "./Dao";
+import { Dao, type RSVP, type FamilyResponse } from "./Dao";
 import { Router } from "./router";
 import { initializeFaqs } from "./faqs";
 import "./style.css";
@@ -43,22 +43,42 @@ window.addEventListener("DOMContentLoaded", () => {
 /** RSVP */
 function initializeRsvpForm() {
   const form = document.getElementById("rsvp-form") as HTMLFormElement | null;
-  const statusEl = document.getElementById("rsvp-status") as HTMLParagraphElement | null;
-  const submitBtn = form?.querySelector('button[type="submit"]') as HTMLButtonElement | null;
-  const comingEl = form?.querySelector<HTMLInputElement>('input[name="coming"]');
-  const overnightEl = form?.querySelector<HTMLInputElement>('#overnight');
-  const overnightLabel = form?.querySelector<HTMLElement>('.overnight-label');
+  const statusEl = document.getElementById(
+    "rsvp-status"
+  ) as HTMLParagraphElement | null;
+  const submitBtn = document.getElementById(
+    "rsvp-submit"
+  ) as HTMLButtonElement | null;
+  const familySelector = document.getElementById(
+    "family-selector"
+  ) as HTMLSelectElement | null;
+  const peopleContainer = document.getElementById(
+    "people-forms-container"
+  ) as HTMLDivElement | null;
+  const letterImage = document.querySelector(
+    ".section-img-wrapper.letter"
+  ) as HTMLElement | null;
+  const selectorStage = document.getElementById(
+    "rsvp-selector-stage"
+  ) as HTMLElement | null;
+  const familyStage = document.getElementById(
+    "rsvp-family-stage"
+  ) as HTMLElement | null;
+  const noteEl = document.querySelector(
+    ".rsvp-note"
+  ) as HTMLParagraphElement | null;
+  const costEl = document.getElementById("rsvp-cost") as HTMLParagraphElement | null;
+  const costDisplay = document.getElementById("rsvp-cost-display") as HTMLDivElement | null;
 
-  const toggleOvernight = (show: boolean) => {
-    overnightEl?.classList.toggle("invisible", !show);
-    overnightLabel?.classList.toggle("invisible", !show);
-    if (!show && overnightEl) overnightEl.checked = false;
-  };
-
-  toggleOvernight(!!comingEl?.checked);
-  comingEl?.addEventListener("change", () => toggleOvernight(!!comingEl.checked));
-
-  if (!form) return;
+  if (
+    !form ||
+    !familySelector ||
+    !peopleContainer ||
+    !selectorStage ||
+    !familyStage ||
+    !noteEl
+  )
+    return;
 
   const setStatus = (msg: string, ok = false) => {
     if (!statusEl) return;
@@ -67,39 +87,470 @@ function initializeRsvpForm() {
     statusEl.classList.add(ok ? "ok" : "err");
   };
 
-  form.addEventListener(
-    "submit",
-    async (e) => {
-      e.preventDefault();
-      if (!submitBtn) return;
-      submitBtn.disabled = true;
+  const setNote = (msg: string, isError = false, autoHide = false) => {
+    if (!noteEl) return;
 
-      try {
-        const fd = new FormData(form);
-        const firstName = String(fd.get("first-name") ?? "").trim();
-        const lastName = String(fd.get("last-name") ?? "").trim();
-        const comment = String(fd.get("comment") ?? "").trim();
-        const comingBx = fetchElement<HTMLInputElement>("coming");
-        const overnightBx = fetchElement<HTMLInputElement>("overnight");
+    noteEl.textContent = msg;
+    noteEl.classList.remove("error", "auto-hide");
 
-        const coming = comingBx?.checked ?? false;
-        const overnight = overnightBx?.checked ?? false;
+    if (isError) {
+      noteEl.classList.add("error");
+    } else if (autoHide && msg) {
+      // Force reflow to restart animation
+      void noteEl.offsetWidth;
+      noteEl.classList.add("auto-hide");
+    }
+  };
 
-        const rsvp: RSVP = { firstName, lastName, comment, coming, overnight };
+  // Cost calculation
+  const MEAL_COSTS: Record<string, number> = {
+    "friday-dinner": 0, // complimentary
+    "saturday-breakfast": 50,
+    "saturday-lunch": 50,
+    "saturday-dinner": 0, // complimentary
+    "sunday-breakfast": 0, // complimentary
+    "sunday-lunch": 50,
+  };
+  const LODGE_NIGHT_COST = 100;
 
-        await dao.addRsvp(rsvp);
-        setStatus(rsvp.coming ? "🎉 See you there!" : "Response recorded", true);
-        form.reset();
-        toggleOvernight(false);
-      } catch (err) {
-        console.error(err);
-        setStatus("Oops—couldn't save your RSVP. Try again?", false);
-      } finally {
-        submitBtn.disabled = false;
+  const calculateTotalCost = (): number => {
+    let total = 0;
+    const peopleCount = currentFamilyData?.people.length || 0;
+
+    for (let idx = 0; idx < peopleCount; idx++) {
+      // Count lodge nights
+      const lodgeInputs = form.querySelectorAll(
+        `input[name="person-${idx}-lodge"]:checked`
+      ) as NodeListOf<HTMLInputElement>;
+      total += lodgeInputs.length * LODGE_NIGHT_COST;
+
+      // Count meals
+      const mealInputs = form.querySelectorAll(
+        `input[name="person-${idx}-meal"]:checked`
+      ) as NodeListOf<HTMLInputElement>;
+      mealInputs.forEach((input) => {
+        total += MEAL_COSTS[input.value] || 0;
+      });
+    }
+
+    return total;
+  };
+
+  const updateCostDisplay = () => {
+    if (!costEl) return;
+    const total = calculateTotalCost();
+    costEl.textContent = `Total: $${total}`;
+  };
+
+  // Load and populate family dropdown from Firebase
+  (async () => {
+    try {
+      const families = await dao.getAllFamilies();
+      families.forEach((family) => {
+        const option = document.createElement("option");
+        option.value = family.key;
+        option.textContent = family.name;
+        familySelector.appendChild(option);
+      });
+    } catch (err) {
+      console.error("Failed to load families:", err);
+      setStatus("Failed to load families", false);
+    }
+  })();
+
+  // Store current family data for submission
+  let currentFamilyData: FamilyResponse | null = null;
+
+  // Handle family selection
+  familySelector.addEventListener("change", async () => {
+    const familyKey = familySelector.value;
+
+    if (!familyKey) {
+      // Stage 1: Selector stage
+      form.classList.remove("expanded");
+      familyStage.classList.add("hidden");
+      if (letterImage) letterImage.style.display = "flex";
+      peopleContainer.innerHTML = "";
+      currentFamilyData = null;
+      if (costDisplay) costDisplay.classList.add("hidden");
+      if (costEl) costEl.textContent = "Total: $0";
+      return;
+    }
+
+    // Stage 2: Family stage (selector remains visible)
+    form.classList.add("expanded");
+    familyStage.classList.remove("hidden");
+    if (letterImage) letterImage.style.display = "none";
+    if (costDisplay) costDisplay.classList.remove("hidden");
+
+    // Load family data from Firebase
+    const familyData = await dao.getFamilyResponse(familyKey);
+
+    if (!familyData || !familyData.people || familyData.people.length === 0) {
+      setNote("No data found for this family", true);
+      currentFamilyData = null;
+      return;
+    }
+
+    // Store for submission
+    currentFamilyData = familyData;
+
+    // Clear any previous error messages
+    setNote("");
+
+    // Render person forms
+    renderPeopleForms(familyData.people);
+
+    // Update cost display after rendering
+    updateCostDisplay();
+  });
+
+  function renderPeopleForms(people: RSVP[]) {
+    if (!peopleContainer) return;
+    peopleContainer.innerHTML = "";
+
+    people.forEach((person, idx) => {
+      const personDiv = document.createElement("div");
+      personDiv.className = "person-form";
+      personDiv.innerHTML = `
+        <div class="person-header-section">
+          <h3 class="person-name">${person.firstName} ${person.lastName}</h3>
+          <div class="coming-selector">
+            <label for="person-${idx}-attendance">Attending?</label>
+            <select name="person-${idx}-attendance" id="person-${idx}-attendance">
+              <option value="no" ${!person.coming ? "selected" : ""}>Not coming</option>
+              <option value="yes" ${person.coming ? "selected" : ""}>Coming</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="person-details">
+          <div class="contact-info-section">
+            <label>Email <span class="optional"></span></label>
+            <input type="email" name="person-${idx}-email" value="${person.email}" />
+
+            <label>Phone <span class="optional"></span></label>
+            <input type="tel" name="person-${idx}-phone" value="${person.phone}" />
+          </div>
+
+          <div class="rainbow-lodge-section">
+            <label class="section-label">Staying at Rainbow Lodge?</label>
+            <div class="rainbow-lodge-nights">
+              <label class="night-checkbox">
+                <input type="checkbox" name="person-${idx}-lodge" value="friday" ${person.rainbowLodgeNights?.includes("friday") ? "checked" : ""} />
+                Friday night
+              </label>
+              <label class="night-checkbox">
+                <input type="checkbox" name="person-${idx}-lodge" value="saturday" ${person.rainbowLodgeNights?.includes("saturday") ? "checked" : ""} />
+                Saturday night
+              </label>
+            </div>
+          </div>
+
+          <div class="meals-section">
+            <label class="section-label">Joining us for meals?</label>
+            <div class="meals-list">
+              <label class="meal-checkbox">
+                <input type="checkbox" name="person-${idx}-meal" value="friday-dinner" ${person.meals?.includes("friday-dinner") ? "checked" : ""} />
+                <span>Friday rehearsal dinner <span class="complimentary">(complimentary)</span></span>
+              </label>
+              <label class="meal-checkbox">
+                <input type="checkbox" name="person-${idx}-meal" value="saturday-breakfast" ${person.meals?.includes("saturday-breakfast") ? "checked" : ""} />
+                Saturday breakfast
+              </label>
+              <label class="meal-checkbox">
+                <input type="checkbox" name="person-${idx}-meal" value="saturday-lunch" ${person.meals?.includes("saturday-lunch") ? "checked" : ""} />
+                Saturday lunch
+              </label>
+              <label class="meal-checkbox">
+                <input type="checkbox" name="person-${idx}-meal" value="saturday-dinner" checked disabled />
+                <span>Saturday wedding dinner <span class="complimentary">(complimentary)</span></span>
+              </label>
+              <label class="meal-checkbox">
+                <input type="checkbox" name="person-${idx}-meal" value="sunday-breakfast" ${person.meals?.includes("sunday-breakfast") ? "checked" : ""} />
+                <span>Sunday breakfast <span class="complimentary">(complimentary)</span></span>
+              </label>
+              <label class="meal-checkbox">
+                <input type="checkbox" name="person-${idx}-meal" value="sunday-lunch" ${person.meals?.includes("sunday-lunch") ? "checked" : ""} />
+                Sunday lunch
+              </label>
+            </div>
+          </div>
+
+          <label class="dietary-toggle-label">
+          Dietary Restrictions?
+          <input type="checkbox" class="dietary-toggle" data-person-idx="${idx}" ${person.dietaryRestrictions && person.dietaryRestrictions.length > 0 ? "checked" : ""} />
+
+          </label>
+
+          <div class="dietary-options ${person.dietaryRestrictions && person.dietaryRestrictions.length > 0 ? "" : "hidden"}" id="dietary-${idx}">
+            <label class="dietary-checkbox">
+              <input type="checkbox" name="person-${idx}-dietary" value="vegetarian" ${person.dietaryRestrictions?.includes("vegetarian") ? "checked" : ""} />
+              Vegetarian
+            </label>
+            <label class="dietary-checkbox">
+              <input type="checkbox" name="person-${idx}-dietary" value="vegan" ${person.dietaryRestrictions?.includes("vegan") ? "checked" : ""} />
+              Vegan
+            </label>
+            <label class="dietary-checkbox">
+              <input type="checkbox" name="person-${idx}-dietary" value="pescatarian" ${person.dietaryRestrictions?.includes("pescatarian") ? "checked" : ""} />
+              Pescatarian
+            </label>
+            <label class="dietary-checkbox">
+              <input type="checkbox" name="person-${idx}-dietary" value="dairy-free" ${person.dietaryRestrictions?.includes("dairy-free") ? "checked" : ""} />
+              Dairy-free
+            </label>
+            <label class="dietary-checkbox">
+              <input type="checkbox" name="person-${idx}-dietary" value="nut-free" ${person.dietaryRestrictions?.includes("nut-free") ? "checked" : ""} />
+              Nut-free
+            </label>
+            <label class="dietary-checkbox">
+              <input type="checkbox" name="person-${idx}-dietary" value="egg-free" ${person.dietaryRestrictions?.includes("egg-free") ? "checked" : ""} />
+              Egg-free
+            </label>
+            <label class="dietary-checkbox">
+              <input type="checkbox" name="person-${idx}-dietary" value="gluten-free" ${person.dietaryRestrictions?.includes("gluten-free") ? "checked" : ""} />
+              Gluten-free
+            </label>
+            <label class="dietary-checkbox">
+              <input type="checkbox" name="person-${idx}-dietary" value="other" ${person.dietaryRestrictions?.includes("other") ? "checked" : ""} />
+              Other
+            </label>
+            <div class="dietary-notes ${person.dietaryRestrictions?.includes("other") ? "" : "hidden"}" id="dietary-notes-${idx}">
+              <label>Please specify:</label>
+              <textarea name="person-${idx}-dietary-notes" rows="2" placeholder="Other dietary restrictions...">${person.dietaryNotes || ""}</textarea>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add event listener for attendance dropdown
+      const attendanceSelect = personDiv.querySelector(
+        `#person-${idx}-attendance`
+      ) as HTMLSelectElement;
+      const details = personDiv.querySelector(".person-details") as HTMLElement;
+
+      const updateDetailsVisibility = () => {
+        const isComing = attendanceSelect.value === "yes";
+        if (isComing) {
+          details.classList.remove("hidden");
+        } else {
+          details.classList.add("hidden");
+        }
+      };
+
+      attendanceSelect?.addEventListener("change", updateDetailsVisibility);
+
+      // Set initial state
+      updateDetailsVisibility();
+
+      // Add event listener for dietary restrictions toggle
+      const dietaryToggle = personDiv.querySelector(
+        ".dietary-toggle"
+      ) as HTMLInputElement;
+      const dietaryOptions = personDiv.querySelector(
+        `#dietary-${idx}`
+      ) as HTMLElement;
+
+      dietaryToggle?.addEventListener("change", () => {
+        if (dietaryToggle.checked) {
+          dietaryOptions?.classList.remove("hidden");
+        } else {
+          dietaryOptions?.classList.add("hidden");
+          // Clear all dietary restriction checkboxes
+          const dietaryCheckboxes = dietaryOptions?.querySelectorAll(
+            `input[name="person-${idx}-dietary"]`
+          ) as NodeListOf<HTMLInputElement>;
+          dietaryCheckboxes?.forEach((checkbox) => {
+            checkbox.checked = false;
+          });
+          // Clear dietary notes textarea
+          const dietaryNotesTextarea = dietaryOptions?.querySelector(
+            `textarea[name="person-${idx}-dietary-notes"]`
+          ) as HTMLTextAreaElement;
+          if (dietaryNotesTextarea) {
+            dietaryNotesTextarea.value = "";
+          }
+          // Hide the notes field
+          const dietaryNotesDiv = personDiv.querySelector(
+            `#dietary-notes-${idx}`
+          ) as HTMLElement;
+          dietaryNotesDiv?.classList.add("hidden");
+        }
+      });
+
+      // Add event listener for "other" checkbox to show/hide notes field
+      const otherCheckbox = personDiv.querySelector(
+        `input[value="other"]`
+      ) as HTMLInputElement;
+      const dietaryNotesDiv = personDiv.querySelector(
+        `#dietary-notes-${idx}`
+      ) as HTMLElement;
+
+      otherCheckbox?.addEventListener("change", () => {
+        if (otherCheckbox.checked) {
+          dietaryNotesDiv?.classList.remove("hidden");
+        } else {
+          dietaryNotesDiv?.classList.add("hidden");
+        }
+      });
+
+      // Add event listeners to lodge and meal checkboxes to update cost
+      const lodgeCheckboxes = personDiv.querySelectorAll(
+        `input[name="person-${idx}-lodge"]`
+      ) as NodeListOf<HTMLInputElement>;
+      lodgeCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", updateCostDisplay);
+      });
+
+      const mealCheckboxes = personDiv.querySelectorAll(
+        `input[name="person-${idx}-meal"]`
+      ) as NodeListOf<HTMLInputElement>;
+      mealCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", updateCostDisplay);
+      });
+
+      peopleContainer.appendChild(personDiv);
+    });
+  }
+
+  // Handle form submission
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!submitBtn) return;
+    submitBtn.disabled = true;
+
+    try {
+      const familyKey = familySelector.value;
+      if (!currentFamilyData) {
+        throw new Error("No family data loaded");
       }
-    },
-    { once: true }
-  );
+
+      const fd = new FormData(form);
+      const people: RSVP[] = [];
+
+      // Collect data for each person
+      for (let idx = 0; idx < currentFamilyData.people.length; idx++) {
+        const attendanceValue = String(
+          fd.get(`person-${idx}-attendance`) ?? "no"
+        );
+        const coming = attendanceValue === "yes";
+
+        // Names come from current family data
+        const firstName = currentFamilyData.people[idx].firstName;
+        const lastName = currentFamilyData.people[idx].lastName;
+
+        // Only collect other data if coming
+        const email = coming
+          ? String(fd.get(`person-${idx}-email`) ?? "").trim()
+          : currentFamilyData.people[idx].email;
+        const phone = coming
+          ? String(fd.get(`person-${idx}-phone`) ?? "").trim()
+          : currentFamilyData.people[idx].phone;
+
+        // Collect Rainbow Lodge nights if coming
+        const rainbowLodgeNights: string[] = [];
+        if (coming) {
+          const lodgeInputs = form.querySelectorAll(
+            `input[name="person-${idx}-lodge"]:checked`
+          ) as NodeListOf<HTMLInputElement>;
+          lodgeInputs.forEach((input) => {
+            rainbowLodgeNights.push(input.value);
+          });
+        }
+
+        // Collect meals if coming
+        const meals: string[] = [];
+        if (coming) {
+          // Always include Saturday/main dinner (it's checked and disabled)
+          meals.push("saturday-dinner");
+
+          // Collect other checked meals
+          const mealInputs = form.querySelectorAll(
+            `input[name="person-${idx}-meal"]:checked:not([disabled])`
+          ) as NodeListOf<HTMLInputElement>;
+          mealInputs.forEach((input) => {
+            meals.push(input.value);
+          });
+        }
+
+        // Collect dietary restrictions if coming
+        const dietaryRestrictions: string[] = [];
+        if (coming) {
+          const dietaryInputs = form.querySelectorAll(
+            `input[name="person-${idx}-dietary"]:checked`
+          ) as NodeListOf<HTMLInputElement>;
+          dietaryInputs.forEach((input) => {
+            dietaryRestrictions.push(input.value);
+          });
+        }
+        const dietaryNotes =
+          coming && dietaryRestrictions.includes("other")
+            ? String(fd.get(`person-${idx}-dietary-notes`) ?? "").trim()
+            : "";
+
+        // Overnight is true if they selected any lodge nights
+        const overnight = rainbowLodgeNights.length > 0;
+
+        // Build person object, only including optional fields if they have values
+        const person: RSVP = {
+          firstName,
+          lastName,
+          email,
+          phone,
+          coming,
+          overnight,
+        };
+
+        if (rainbowLodgeNights.length > 0) {
+          person.rainbowLodgeNights = rainbowLodgeNights;
+        }
+        if (meals.length > 0) {
+          person.meals = meals;
+        }
+        if (dietaryRestrictions.length > 0) {
+          person.dietaryRestrictions = dietaryRestrictions;
+        }
+        if (dietaryNotes) {
+          person.dietaryNotes = dietaryNotes;
+        }
+
+        people.push(person);
+      }
+
+      // Validate: if anyone is coming, at least one coming person must have email and phone
+      const comingPeople = people.filter((p) => p.coming);
+      if (comingPeople.length > 0) {
+        const hasContact = comingPeople.some((p) => p.email && p.phone);
+        if (!hasContact) {
+          setNote("At least one person needs to provide email and phone", true);
+          return;
+        }
+      }
+
+      const familyResponse: FamilyResponse = {
+        familyKey,
+        familyName: currentFamilyData.familyName,
+        people,
+      };
+
+      await dao.saveFamilyResponse(familyResponse);
+
+      const anyoneComing = people.some((p) => p.coming);
+      setNote(
+        anyoneComing ? "🎉 See you there!" : "Response recorded",
+        false,
+        true
+      );
+
+      // Keep the form populated (don't reset)
+    } catch (err) {
+      console.error(err);
+      setNote("Oops—couldn't save your RSVP. Try again?", true);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 }
 
 /** Menu scroll highlight + smooth scroll */
@@ -137,7 +588,8 @@ function initializeScrollHighlighting() {
       if (!targetSection) return;
 
       const menuBarHeight =
-        document.querySelector(".menu-bar")?.getBoundingClientRect().height || 0;
+        document.querySelector(".menu-bar")?.getBoundingClientRect().height ||
+        0;
       const targetPosition = targetSection.offsetTop - menuBarHeight;
       smoothScrollToY(targetPosition);
     });
@@ -171,7 +623,8 @@ function smoothScrollToY(
 
   const easing =
     opts.easing ??
-    ((t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2));
+    ((t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
   const prefersReduced =
     window.matchMedia &&
@@ -215,13 +668,19 @@ function smoothScrollToY(
 function initializeScheduleTabs() {
   const tabButtons = document.querySelectorAll(".tab-button");
   const tabPanels = document.querySelectorAll(".tab-panel");
-  const prevButton = document.getElementById("prev-tab") as HTMLButtonElement | null;
-  const nextButton = document.getElementById("next-tab") as HTMLButtonElement | null;
+  const prevButton = document.getElementById(
+    "prev-tab"
+  ) as HTMLButtonElement | null;
+  const nextButton = document.getElementById(
+    "next-tab"
+  ) as HTMLButtonElement | null;
 
   if (tabButtons.length === 0 || tabPanels.length === 0) return;
 
   const tabs = Array.from(tabButtons);
-  const tabIds = tabs.map(btn => btn.getAttribute("data-tab")).filter(Boolean) as string[];
+  const tabIds = tabs
+    .map((btn) => btn.getAttribute("data-tab"))
+    .filter(Boolean) as string[];
 
   function switchToTab(targetTab: string) {
     tabButtons.forEach((btn) => btn.classList.remove("active"));
@@ -283,7 +742,9 @@ function initializeScheduleTabs() {
   }
 
   function handleKeyDown(e: KeyboardEvent) {
-    const scheduleSection = document.getElementById("schedule") as HTMLDivElement | null;
+    const scheduleSection = document.getElementById(
+      "schedule"
+    ) as HTMLDivElement | null;
     if (!scheduleSection) return;
     const rect = scheduleSection.getBoundingClientRect();
     if (rect.top > window.innerHeight || rect.bottom < 0) return;
