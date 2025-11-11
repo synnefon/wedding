@@ -11,7 +11,7 @@ const EMAIL_CONFIG = {
   secure: false,
   auth: {
     user: 'sendercondor@gmail.com',
-    pass: '101310101310!A'
+    pass: 'zsfwsrpevsombjjy'
   }
 };
 
@@ -104,4 +104,120 @@ exports.onNewFaqAnswer = functions.firestore
     }
 
     return null;
+  });
+
+/**
+ * Send email notification for a new RSVP submission
+ */
+exports.onNewRsvp = functions.firestore
+  .document('responses/{responseId}')
+  .onCreate(async (snap, context) => {
+    const rsvpData = snap.data();
+    const responseId = context.params.responseId;
+
+    const familyName = rsvpData.familyName || 'Unknown Family';
+    const people = rsvpData.people || [];
+
+    // Meal labels for display
+    const mealLabels = {
+      'friday-dinner': 'Friday rehearsal dinner',
+      'saturday-breakfast': 'Saturday breakfast',
+      'saturday-lunch': 'Saturday lunch',
+      'saturday-dinner': 'Saturday wedding dinner',
+      'sunday-brunch': 'Sunday brunch'
+    };
+
+    const dietaryLabels = {
+      'vegetarian': 'Vegetarian',
+      'vegan': 'Vegan',
+      'pescatarian': 'Pescatarian',
+      'dairy-free': 'Dairy-free',
+      'nut-free': 'Nut-free',
+      'egg-free': 'Egg-free',
+      'gluten-free': 'Gluten-free'
+    };
+
+    // Calculate total cost
+    const MEAL_COSTS = {
+      'friday-dinner': 0,
+      'saturday-breakfast': 50,
+      'saturday-lunch': 50,
+      'saturday-dinner': 0,
+      'sunday-brunch': 0
+    };
+    const LODGE_NIGHT_COST = 100;
+
+    let totalCost = 0;
+    people.forEach(person => {
+      // Lodge nights
+      if (person.rainbowLodgeNights) {
+        totalCost += person.rainbowLodgeNights.length * LODGE_NIGHT_COST;
+      }
+      // Meals
+      if (person.meals) {
+        person.meals.forEach(meal => {
+          totalCost += MEAL_COSTS[meal] || 0;
+        });
+      }
+    });
+
+    // Format each person's details
+    let peopleHtml = '';
+    people.forEach((person, index) => {
+      peopleHtml += `
+        <div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #4a5568;">
+          <h3 style="margin-top: 0;">${person.firstName} ${person.lastName}</h3>
+          ${person.email ? `<p><strong>Email:</strong> ${person.email}</p>` : ''}
+          ${person.phone ? `<p><strong>Phone:</strong> ${person.phone}</p>` : ''}
+
+          ${person.rainbowLodgeNights && person.rainbowLodgeNights.length > 0 ? `
+            <p><strong>Staying at Rainbow Lodge:</strong> ${person.rainbowLodgeNights.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(', ')}</p>
+          ` : '<p><strong>Staying at Rainbow Lodge:</strong> No</p>'}
+
+          ${person.meals && person.meals.length > 0 ? `
+            <p><strong>Meals:</strong></p>
+            <ul style="margin: 5px 0;">
+              ${person.meals.map(meal => `<li>${mealLabels[meal] || meal}</li>`).join('')}
+            </ul>
+          ` : ''}
+
+          ${person.dietaryRestrictions && person.dietaryRestrictions.length > 0 ? `
+            <p><strong>Dietary Restrictions:</strong></p>
+            <ul style="margin: 5px 0;">
+              ${person.dietaryRestrictions.filter(r => r !== 'other').map(r => `<li>${dietaryLabels[r] || r}</li>`).join('')}
+              ${person.dietaryNotes ? `<li>${person.dietaryNotes}</li>` : ''}
+            </ul>
+          ` : ''}
+
+          ${person.notes ? `<p><strong>Additional Notes:</strong> ${person.notes}</p>` : ''}
+        </div>
+      `;
+    });
+
+    const mailOptions = {
+      from: EMAIL_CONFIG.auth.user,
+      to: RECIPIENT_EMAIL,
+      subject: `New Wedding RSVP: ${familyName}`,
+      html: `
+        <h2>New RSVP Received!</h2>
+        <p><strong>Family/Group:</strong> ${familyName}</p>
+        <p><strong>Number of Guests:</strong> ${people.length}</p>
+        <p><strong>Total Cost:</strong> $${totalCost}</p>
+        <hr>
+        <h3>Guest Details:</h3>
+        ${peopleHtml}
+        <hr>
+        <p><strong>Submission ID:</strong> ${responseId}</p>
+        <p><em>Received: ${new Date().toLocaleString()}</em></p>
+      `
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`Email sent for new RSVP: ${responseId}`);
+      return null;
+    } catch (error) {
+      console.error('Error sending email for new RSVP:', error);
+      return null;
+    }
   });
