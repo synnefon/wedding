@@ -394,7 +394,9 @@ export function initializeRsvpForm(dao: Dao) {
             person?.dietaryRestrictions?.includes("other") ? "" : "hidden"
           }" id="dietary-notes-${idx}">
             <label>Please specify:</label>
-            <textarea name="person-${idx}-dietary-notes" rows="2" placeholder="Other dietary restrictions...">${
+            <textarea name="person-${idx}-dietary-notes" rows="2" placeholder="Other dietary restrictions..." ${
+      person?.dietaryRestrictions?.includes("other") ? "required" : ""
+    }>${
       person?.dietaryNotes || ""
     }</textarea>
           </div>
@@ -494,10 +496,17 @@ export function initializeRsvpForm(dao: Dao) {
     ) as HTMLElement;
 
     otherCheckbox?.addEventListener("change", () => {
+      const dietaryNotesTextarea = dietaryNotesDiv?.querySelector("textarea");
       if (otherCheckbox.checked) {
         dietaryNotesDiv?.classList.remove("hidden");
+        if (dietaryNotesTextarea) {
+          dietaryNotesTextarea.required = true;
+        }
       } else {
         dietaryNotesDiv?.classList.add("hidden");
+        if (dietaryNotesTextarea) {
+          dietaryNotesTextarea.required = false;
+        }
       }
     });
 
@@ -761,10 +770,13 @@ export function initializeRsvpForm(dao: Dao) {
       if (person.dietaryRestrictions && person.dietaryRestrictions.length > 0) {
         html += `<p><strong>Dietary Restrictions:</strong></p><ul style="margin: 0.25rem 0 0 1.5rem;">`;
         person.dietaryRestrictions.forEach((restriction) => {
-          html += `<li>${dietaryLabels[restriction] || restriction}</li>`;
+          // Skip "other" - we'll show the notes text instead
+          if (restriction !== "other") {
+            html += `<li>${dietaryLabels[restriction] || restriction}</li>`;
+          }
         });
         if (person.dietaryNotes) {
-          html += `<li><em>${person.dietaryNotes}</em></li>`;
+          html += `<li>${person.dietaryNotes}</li>`;
         }
         html += `</ul>`;
       } else {
