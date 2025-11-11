@@ -39,6 +39,7 @@ export interface RSVP {
     meals?: string[];
     dietaryRestrictions?: string[];
     dietaryNotes?: string;
+    notes?: string;
 }
 
 export interface FamilyResponse {

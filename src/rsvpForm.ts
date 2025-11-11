@@ -399,6 +399,13 @@ export function initializeRsvpForm(dao: Dao) {
     }</textarea>
           </div>
         </div>
+
+        <div class="notes-section">
+          <label>Additional Notes</label>
+          <textarea name="person-${idx}-notes" rows="3" placeholder="Anything else we should know...">${
+      person?.notes || ""
+    }</textarea>
+        </div>
       </div>
     `;
 
@@ -642,6 +649,8 @@ export function initializeRsvpForm(dao: Dao) {
         ? String(fd.get(`person-${personIdx}-dietary-notes`) ?? "").trim()
         : "";
 
+      const notes = String(fd.get(`person-${personIdx}-notes`) ?? "").trim();
+
       // Overnight is true if they selected any lodge nights
       const overnight = rainbowLodgeNights.length > 0;
 
@@ -666,6 +675,9 @@ export function initializeRsvpForm(dao: Dao) {
       }
       if (dietaryNotes) {
         person.dietaryNotes = dietaryNotes;
+      }
+      if (notes) {
+        person.notes = notes;
       }
 
       people.push(person);
@@ -757,6 +769,10 @@ export function initializeRsvpForm(dao: Dao) {
         }
       } else {
         html += `<p><strong>Dietary Restrictions:</strong> N/A</p>`;
+      }
+
+      if (person.notes) {
+        html += `<p><strong>Notes:</strong> ${person.notes}</p>`;
       }
 
       html += `</div>`;

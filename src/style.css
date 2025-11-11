@@ -916,6 +916,34 @@ section.rsvp> .section-content {
   font-size: 0.9em;
 }
 
+.notes-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--alt-bg);
+}
+
+.notes-section label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.notes-section textarea {
+  width: 100%;
+  padding: 0.5rem;
+  font-family: "SUSE_Mono";
+  font-size: medium;
+  background-color: var(--bg);
+  border: 2px solid var(--text);
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.notes-section textarea:focus {
+  border-color: var(--pop);
+  outline: none;
+}
+
 .add-person-btn {
   padding: 1.5rem;
   font-family: "SUSE_Mono";
