@@ -1,10 +1,7 @@
-import { Dao, type RSVP, type FamilyResponse } from "./Dao";
+import { Dao, type FamilyResponse, type RSVP } from "./Dao";
 
 export function initializeRsvpForm(dao: Dao) {
   const form = document.getElementById("rsvp-form") as HTMLFormElement | null;
-  const statusEl = document.getElementById(
-    "rsvp-status"
-  ) as HTMLParagraphElement | null;
   const submitBtn = document.getElementById(
     "rsvp-submit"
   ) as HTMLButtonElement | null;
@@ -18,26 +15,62 @@ export function initializeRsvpForm(dao: Dao) {
     ".rsvp-note"
   ) as HTMLParagraphElement | null;
   const costEl = document.getElementById("rsvp-cost") as HTMLParagraphElement | null;
-  const costDisplay = document.getElementById("rsvp-cost-display") as HTMLDivElement | null;
+  const errorModal = document.getElementById("error-modal") as HTMLDivElement | null;
+  const errorMessage = document.getElementById("error-message") as HTMLParagraphElement | null;
+  const closeErrorBtn = document.getElementById("close-error-modal") as HTMLButtonElement | null;
+  const confirmModal = document.getElementById("confirm-modal") as HTMLDivElement | null;
+  const confirmCancelBtn = document.getElementById("confirm-cancel") as HTMLButtonElement | null;
+  const confirmDeleteBtn = document.getElementById("confirm-delete") as HTMLButtonElement | null;
+  const successOverlay = document.getElementById("success-overlay") as HTMLDivElement | null;
 
-  if (!form || !peopleContainer || !addPersonBtn || !noteEl) return;
+  if (!form || !peopleContainer || !addPersonBtn || !noteEl || !errorModal || !errorMessage || !closeErrorBtn || !confirmModal || !confirmCancelBtn || !confirmDeleteBtn || !successOverlay) return;
 
   let personCount = 0;
 
-  const setNote = (msg: string, isError = false, autoHide = false) => {
-    if (!noteEl) return;
-
-    noteEl.textContent = msg;
-    noteEl.classList.remove("error", "auto-hide");
-
-    if (isError) {
-      noteEl.classList.add("error");
-    } else if (autoHide && msg) {
-      // Force reflow to restart animation
-      void noteEl.offsetWidth;
-      noteEl.classList.add("auto-hide");
-    }
+  const showErrorModal = (message: string) => {
+    errorMessage.textContent = message;
+    errorModal.classList.remove("hidden");
   };
+
+  const hideErrorModal = () => {
+    errorModal.classList.add("hidden");
+  };
+
+  const showSuccessOverlay = () => {
+    successOverlay.classList.remove("hidden");
+  };
+
+  const hideSuccessOverlay = () => {
+    successOverlay.classList.add("hidden");
+  };
+
+  const showConfirmModal = () => {
+    confirmModal.classList.remove("hidden");
+  };
+
+  const hideConfirmModal = () => {
+    confirmModal.classList.add("hidden");
+  };
+
+  // Close error modal on button click
+  closeErrorBtn.addEventListener("click", hideErrorModal);
+
+  // Close error modal on backdrop click
+  errorModal.addEventListener("click", (e) => {
+    if (e.target === errorModal) {
+      hideErrorModal();
+    }
+  });
+
+  // Close confirmation modal on cancel button
+  confirmCancelBtn.addEventListener("click", hideConfirmModal);
+
+  // Close confirmation modal on backdrop click
+  confirmModal.addEventListener("click", (e) => {
+    if (e.target === confirmModal) {
+      hideConfirmModal();
+    }
+  });
 
   // Cost calculation
   const MEAL_COSTS: Record<string, number> = {
@@ -81,6 +114,47 @@ export function initializeRsvpForm(dao: Dao) {
     costEl.textContent = `Total: $${total}`;
   };
 
+  const personFormHasData = (personDiv: HTMLElement): boolean => {
+    // Check text inputs
+    const textInputs = personDiv.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]') as NodeListOf<HTMLInputElement>;
+    for (const input of textInputs) {
+      if (input.value.trim()) return true;
+    }
+
+    // Check checkboxes (excluding the disabled saturday-dinner)
+    const checkboxes = personDiv.querySelectorAll('input[type="checkbox"]:not([disabled])') as NodeListOf<HTMLInputElement>;
+    for (const checkbox of checkboxes) {
+      if (checkbox.checked) return true;
+    }
+
+    // Check textarea
+    const textarea = personDiv.querySelector('textarea') as HTMLTextAreaElement;
+    if (textarea?.value.trim()) return true;
+
+    return false;
+  };
+
+  const updateDeleteButtonStates = () => {
+    const personForms = peopleContainer.querySelectorAll(".person-form");
+    const isOnlyOnePerson = personForms.length === 1;
+
+    personForms.forEach((form) => {
+      const removeBtn = form.querySelector(".remove-person-btn") as HTMLButtonElement;
+      if (!removeBtn) return;
+
+      const hasData = personFormHasData(form as HTMLElement);
+      const shouldDisable = isOnlyOnePerson && !hasData;
+
+      if (shouldDisable) {
+        removeBtn.disabled = true;
+        removeBtn.classList.add("disabled");
+      } else {
+        removeBtn.disabled = false;
+        removeBtn.classList.remove("disabled");
+      }
+    });
+  };
+
   const addPersonForm = (person?: RSVP) => {
     const idx = personCount++;
     const personDiv = document.createElement("div");
@@ -91,21 +165,26 @@ export function initializeRsvpForm(dao: Dao) {
         <div class="person-name-inputs">
           <div class="name-input-group">
             <label>First Name <span class="required">*</span></label>
-            <input type="text" name="person-${idx}-firstName" value="${person?.firstName || ""}" required />
+            <input type="text" name="person-${idx}-firstName" value="${
+      person?.firstName || ""
+    }" required />
           </div>
           <div class="name-input-group">
             <label>Last Name <span class="required">*</span></label>
-            <input type="text" name="person-${idx}-lastName" value="${person?.lastName || ""}" required />
+            <input type="text" name="person-${idx}-lastName" value="${
+      person?.lastName || ""
+    }" required />
           </div>
         </div>
-        <button type="button" class="remove-person-btn" data-remove-idx="${idx}">🗑️</button>
+        <button type="button" class="remove-person-btn" data-remove-idx="${idx}">
+          <img src="/images/trash.svg" alt="Remove" class="trash-icon" />
+        </button>
       </div>
 
       <div class="person-details">
         <div class="contact-info-section">
           <label>Email <span class="optional"></span></label>
           <input type="email" name="person-${idx}-email" value="${person?.email || ""}" />
-
           <label>Phone <span class="optional"></span></label>
           <input type="tel" name="person-${idx}-phone" value="${person?.phone || ""}" />
         </div>
@@ -114,11 +193,15 @@ export function initializeRsvpForm(dao: Dao) {
           <label class="section-label">Staying at Rainbow Lodge?</label>
           <div class="rainbow-lodge-nights">
             <label class="night-checkbox">
-              <input type="checkbox" name="person-${idx}-lodge" value="friday" ${person?.rainbowLodgeNights?.includes("friday") ? "checked" : ""} />
+              <input type="checkbox" name="person-${idx}-lodge" value="friday" ${
+      person?.rainbowLodgeNights?.includes("friday") ? "checked" : ""
+    } />
               Friday night
             </label>
             <label class="night-checkbox">
-              <input type="checkbox" name="person-${idx}-lodge" value="saturday" ${person?.rainbowLodgeNights?.includes("saturday") ? "checked" : ""} />
+              <input type="checkbox" name="person-${idx}-lodge" value="saturday" ${
+      person?.rainbowLodgeNights?.includes("saturday") ? "checked" : ""
+    } />
               Saturday night
             </label>
           </div>
@@ -128,15 +211,21 @@ export function initializeRsvpForm(dao: Dao) {
           <label class="section-label">Joining us for meals?</label>
           <div class="meals-list">
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="friday-dinner" ${person?.meals?.includes("friday-dinner") ? "checked" : ""} />
+              <input type="checkbox" name="person-${idx}-meal" value="friday-dinner" ${
+      person?.meals?.includes("friday-dinner") ? "checked" : ""
+    } />
               <span>Friday rehearsal dinner <span class="complimentary">(complimentary)</span></span>
             </label>
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="saturday-breakfast" ${person?.meals?.includes("saturday-breakfast") ? "checked" : ""} />
+              <input type="checkbox" name="person-${idx}-meal" value="saturday-breakfast" ${
+      person?.meals?.includes("saturday-breakfast") ? "checked" : ""
+    } />
               Saturday breakfast
             </label>
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="saturday-lunch" ${person?.meals?.includes("saturday-lunch") ? "checked" : ""} />
+              <input type="checkbox" name="person-${idx}-meal" value="saturday-lunch" ${
+      person?.meals?.includes("saturday-lunch") ? "checked" : ""
+    } />
               Saturday lunch
             </label>
             <label class="meal-checkbox">
@@ -144,11 +233,15 @@ export function initializeRsvpForm(dao: Dao) {
               <span>Saturday wedding dinner <span class="complimentary">(complimentary)</span></span>
             </label>
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="sunday-breakfast" ${person?.meals?.includes("sunday-breakfast") ? "checked" : ""} />
+              <input type="checkbox" name="person-${idx}-meal" value="sunday-breakfast" ${
+      person?.meals?.includes("sunday-breakfast") ? "checked" : ""
+    } />
               <span>Sunday breakfast <span class="complimentary">(complimentary)</span></span>
             </label>
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="sunday-lunch" ${person?.meals?.includes("sunday-lunch") ? "checked" : ""} />
+              <input type="checkbox" name="person-${idx}-meal" value="sunday-lunch" ${
+      person?.meals?.includes("sunday-lunch") ? "checked" : ""
+    } />
               Sunday lunch
             </label>
           </div>
@@ -156,45 +249,73 @@ export function initializeRsvpForm(dao: Dao) {
 
         <label class="dietary-toggle-label">
           Dietary Restrictions?
-          <input type="checkbox" class="dietary-toggle" data-dietary-idx="${idx}" ${person?.dietaryRestrictions && person.dietaryRestrictions.length > 0 ? "checked" : ""} />
+          <input type="checkbox" class="dietary-toggle" data-dietary-idx="${idx}" ${
+      person?.dietaryRestrictions && person.dietaryRestrictions.length > 0
+        ? "checked"
+        : ""
+    } />
         </label>
 
-        <div class="dietary-options ${person?.dietaryRestrictions && person.dietaryRestrictions.length > 0 ? "" : "hidden"}" id="dietary-${idx}">
+        <div class="dietary-options ${
+          person?.dietaryRestrictions && person.dietaryRestrictions.length > 0
+            ? ""
+            : "hidden"
+        }" id="dietary-${idx}">
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="vegetarian" ${person?.dietaryRestrictions?.includes("vegetarian") ? "checked" : ""} />
+            <input type="checkbox" name="person-${idx}-dietary" value="vegetarian" ${
+      person?.dietaryRestrictions?.includes("vegetarian") ? "checked" : ""
+    } />
             Vegetarian
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="vegan" ${person?.dietaryRestrictions?.includes("vegan") ? "checked" : ""} />
+            <input type="checkbox" name="person-${idx}-dietary" value="vegan" ${
+      person?.dietaryRestrictions?.includes("vegan") ? "checked" : ""
+    } />
             Vegan
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="pescatarian" ${person?.dietaryRestrictions?.includes("pescatarian") ? "checked" : ""} />
+            <input type="checkbox" name="person-${idx}-dietary" value="pescatarian" ${
+      person?.dietaryRestrictions?.includes("pescatarian") ? "checked" : ""
+    } />
             Pescatarian
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="dairy-free" ${person?.dietaryRestrictions?.includes("dairy-free") ? "checked" : ""} />
+            <input type="checkbox" name="person-${idx}-dietary" value="dairy-free" ${
+      person?.dietaryRestrictions?.includes("dairy-free") ? "checked" : ""
+    } />
             Dairy-free
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="nut-free" ${person?.dietaryRestrictions?.includes("nut-free") ? "checked" : ""} />
+            <input type="checkbox" name="person-${idx}-dietary" value="nut-free" ${
+      person?.dietaryRestrictions?.includes("nut-free") ? "checked" : ""
+    } />
             Nut-free
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="egg-free" ${person?.dietaryRestrictions?.includes("egg-free") ? "checked" : ""} />
+            <input type="checkbox" name="person-${idx}-dietary" value="egg-free" ${
+      person?.dietaryRestrictions?.includes("egg-free") ? "checked" : ""
+    } />
             Egg-free
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="gluten-free" ${person?.dietaryRestrictions?.includes("gluten-free") ? "checked" : ""} />
+            <input type="checkbox" name="person-${idx}-dietary" value="gluten-free" ${
+      person?.dietaryRestrictions?.includes("gluten-free") ? "checked" : ""
+    } />
             Gluten-free
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="other" ${person?.dietaryRestrictions?.includes("other") ? "checked" : ""} />
+            <input type="checkbox" name="person-${idx}-dietary" value="other" ${
+      person?.dietaryRestrictions?.includes("other") ? "checked" : ""
+    } />
             Other
           </label>
-          <div class="dietary-notes ${person?.dietaryRestrictions?.includes("other") ? "" : "hidden"}" id="dietary-notes-${idx}">
+          <div class="dietary-notes ${
+            person?.dietaryRestrictions?.includes("other") ? "" : "hidden"
+          }" id="dietary-notes-${idx}">
             <label>Please specify:</label>
-            <textarea name="person-${idx}-dietary-notes" rows="2" placeholder="Other dietary restrictions...">${person?.dietaryNotes || ""}</textarea>
+            <textarea name="person-${idx}-dietary-notes" rows="2" placeholder="Other dietary restrictions...">${
+      person?.dietaryNotes || ""
+    }</textarea>
           </div>
         </div>
       </div>
@@ -203,15 +324,36 @@ export function initializeRsvpForm(dao: Dao) {
     // Add event listener for remove button
     const removeBtn = personDiv.querySelector(".remove-person-btn") as HTMLButtonElement;
     removeBtn?.addEventListener("click", () => {
-      const personForms = peopleContainer.querySelectorAll(".person-form");
-      const isLastPerson = personForms.length === 1;
+      const hasData = personFormHasData(personDiv);
 
-      personDiv.remove();
-      updateCostDisplay();
+      const executeRemoval = () => {
+        const personForms = peopleContainer.querySelectorAll(".person-form");
+        const isLastPerson = personForms.length === 1;
 
-      // If we just deleted the last person, add a new blank one
-      if (isLastPerson) {
-        addPersonForm();
+        personDiv.remove();
+        updateCostDisplay();
+
+        // If we just deleted the last person, add a new blank one
+        if (isLastPerson) {
+          addPersonForm();
+        }
+      };
+
+      if (hasData) {
+        // Show confirmation modal
+        showConfirmModal();
+
+        // Set up one-time confirmation handler
+        const handleConfirm = () => {
+          hideConfirmModal();
+          executeRemoval();
+          confirmDeleteBtn.removeEventListener("click", handleConfirm);
+        };
+
+        confirmDeleteBtn.addEventListener("click", handleConfirm);
+      } else {
+        // No data, remove immediately
+        executeRemoval();
       }
     });
 
@@ -282,6 +424,16 @@ export function initializeRsvpForm(dao: Dao) {
     });
 
     peopleContainer.appendChild(personDiv);
+    updateCostDisplay();
+  };
+
+  const resetForm = () => {
+    // Clear all person forms
+    peopleContainer.innerHTML = "";
+    personCount = 0;
+    // Add one blank person form
+    addPersonForm();
+    // Reset cost
     updateCostDisplay();
   };
 
@@ -382,7 +534,7 @@ export function initializeRsvpForm(dao: Dao) {
       // Validate: at least one person must have email and phone
       const hasContact = people.some((p) => p.email && p.phone);
       if (!hasContact) {
-        setNote("At least one person needs to provide email and phone", true);
+        showErrorModal("At least one person needs to provide email and phone");
         submitBtn.disabled = false;
         return;
       }
@@ -401,13 +553,18 @@ export function initializeRsvpForm(dao: Dao) {
 
       await dao.saveFamilyResponse(familyResponse);
 
-      setNote("🎉 See you there!", false, true);
+      // Show success overlay
+      showSuccessOverlay();
 
-      // Keep the form populated (don't reset)
+      // After 3 seconds, hide overlay and reset form
+      setTimeout(() => {
+        hideSuccessOverlay();
+        resetForm();
+        submitBtn.disabled = false;
+      }, 3000);
     } catch (err) {
       console.error(err);
-      setNote("Oops—couldn't save your RSVP. Try again?", true);
-    } finally {
+      showErrorModal("Oops—couldn't save your response. Please try again.");
       submitBtn.disabled = false;
     }
   });

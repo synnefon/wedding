@@ -28,6 +28,35 @@
 
       <a href="/" class="back-link">← Back to main page</a>
     </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Oops!</h2>
+        <p id="error-message"></p>
+        <button id="close-error-modal" class="modal-button">Close</button>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Remove this guest?</h2>
+        <p id="confirm-message">Are you sure you want to remove this guest?</p>
+        <div class="modal-buttons">
+          <button id="confirm-cancel" class="modal-button secondary">Cancel</button>
+          <button id="confirm-delete" class="modal-button">Yes, remove</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="success-overlay" class="success-overlay hidden">
+      <div class="success-content">
+        <h1>🎉 See you there!</h1>
+        <p>Your response has been saved successfully.</p>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="/src/main.ts"></script>
