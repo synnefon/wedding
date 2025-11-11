@@ -14,20 +14,61 @@ export function initializeRsvpForm(dao: Dao) {
   const noteEl = document.querySelector(
     ".rsvp-note"
   ) as HTMLParagraphElement | null;
-  const costEl = document.getElementById("rsvp-cost") as HTMLParagraphElement | null;
-  const errorModal = document.getElementById("error-modal") as HTMLDivElement | null;
-  const errorMessage = document.getElementById("error-message") as HTMLParagraphElement | null;
-  const closeErrorBtn = document.getElementById("close-error-modal") as HTMLButtonElement | null;
-  const confirmModal = document.getElementById("confirm-modal") as HTMLDivElement | null;
-  const confirmCancelBtn = document.getElementById("confirm-cancel") as HTMLButtonElement | null;
-  const confirmDeleteBtn = document.getElementById("confirm-delete") as HTMLButtonElement | null;
-  const previewModal = document.getElementById("preview-modal") as HTMLDivElement | null;
-  const previewContent = document.getElementById("preview-content") as HTMLDivElement | null;
-  const previewCancelBtn = document.getElementById("preview-cancel") as HTMLButtonElement | null;
-  const previewConfirmBtn = document.getElementById("preview-confirm") as HTMLButtonElement | null;
-  const successOverlay = document.getElementById("success-overlay") as HTMLDivElement | null;
+  const costEl = document.getElementById(
+    "rsvp-cost"
+  ) as HTMLParagraphElement | null;
+  const errorModal = document.getElementById(
+    "error-modal"
+  ) as HTMLDivElement | null;
+  const errorMessage = document.getElementById(
+    "error-message"
+  ) as HTMLParagraphElement | null;
+  const closeErrorBtn = document.getElementById(
+    "close-error-modal"
+  ) as HTMLButtonElement | null;
+  const confirmModal = document.getElementById(
+    "confirm-modal"
+  ) as HTMLDivElement | null;
+  const confirmCancelBtn = document.getElementById(
+    "confirm-cancel"
+  ) as HTMLButtonElement | null;
+  const confirmDeleteBtn = document.getElementById(
+    "confirm-delete"
+  ) as HTMLButtonElement | null;
+  const previewModal = document.getElementById(
+    "preview-modal"
+  ) as HTMLDivElement | null;
+  const previewContent = document.getElementById(
+    "preview-content"
+  ) as HTMLDivElement | null;
+  const previewCancelBtn = document.getElementById(
+    "preview-cancel"
+  ) as HTMLButtonElement | null;
+  const previewConfirmBtn = document.getElementById(
+    "preview-confirm"
+  ) as HTMLButtonElement | null;
+  const successOverlay = document.getElementById(
+    "success-overlay"
+  ) as HTMLDivElement | null;
 
-  if (!form || !peopleContainer || !addPersonBtn || !noteEl || !errorModal || !errorMessage || !closeErrorBtn || !confirmModal || !confirmCancelBtn || !confirmDeleteBtn || !previewModal || !previewContent || !previewCancelBtn || !previewConfirmBtn || !successOverlay) return;
+  if (
+    !form ||
+    !peopleContainer ||
+    !addPersonBtn ||
+    !noteEl ||
+    !errorModal ||
+    !errorMessage ||
+    !closeErrorBtn ||
+    !confirmModal ||
+    !confirmCancelBtn ||
+    !confirmDeleteBtn ||
+    !previewModal ||
+    !previewContent ||
+    !previewCancelBtn ||
+    !previewConfirmBtn ||
+    !successOverlay
+  )
+    return;
 
   let personCount = 0;
 
@@ -122,7 +163,9 @@ export function initializeRsvpForm(dao: Dao) {
     let total = 0;
 
     for (let idx = 0; idx < personCount; idx++) {
-      const personForm = document.querySelector(`[data-person-idx="${idx}"]`) as HTMLElement;
+      const personForm = document.querySelector(
+        `[data-person-idx="${idx}"]`
+      ) as HTMLElement;
       if (!personForm) continue;
 
       // Count lodge nights
@@ -151,19 +194,23 @@ export function initializeRsvpForm(dao: Dao) {
 
   const personFormHasData = (personDiv: HTMLElement): boolean => {
     // Check text inputs
-    const textInputs = personDiv.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]') as NodeListOf<HTMLInputElement>;
+    const textInputs = personDiv.querySelectorAll(
+      'input[type="text"], input[type="email"], input[type="tel"]'
+    ) as NodeListOf<HTMLInputElement>;
     for (const input of textInputs) {
       if (input.value.trim()) return true;
     }
 
     // Check checkboxes (excluding the disabled saturday-dinner)
-    const checkboxes = personDiv.querySelectorAll('input[type="checkbox"]:not([disabled])') as NodeListOf<HTMLInputElement>;
+    const checkboxes = personDiv.querySelectorAll(
+      'input[type="checkbox"]:not([disabled])'
+    ) as NodeListOf<HTMLInputElement>;
     for (const checkbox of checkboxes) {
       if (checkbox.checked) return true;
     }
 
     // Check textarea
-    const textarea = personDiv.querySelector('textarea') as HTMLTextAreaElement;
+    const textarea = personDiv.querySelector("textarea") as HTMLTextAreaElement;
     if (textarea?.value.trim()) return true;
 
     return false;
@@ -174,7 +221,9 @@ export function initializeRsvpForm(dao: Dao) {
     const isOnlyOnePerson = personForms.length === 1;
 
     personForms.forEach((form) => {
-      const removeBtn = form.querySelector(".remove-person-btn") as HTMLButtonElement;
+      const removeBtn = form.querySelector(
+        ".remove-person-btn"
+      ) as HTMLButtonElement;
       if (!removeBtn) return;
 
       const hasData = personFormHasData(form as HTMLElement);
@@ -219,9 +268,13 @@ export function initializeRsvpForm(dao: Dao) {
       <div class="person-details">
         <div class="contact-info-section">
           <label>Email <span class="optional"></span></label>
-          <input type="email" name="person-${idx}-email" value="${person?.email || ""}" />
+          <input type="email" name="person-${idx}-email" value="${
+      person?.email || ""
+    }" />
           <label>Phone <span class="optional"></span></label>
-          <input type="tel" name="person-${idx}-phone" value="${person?.phone || ""}" />
+          <input type="tel" name="person-${idx}-phone" value="${
+      person?.phone || ""
+    }" />
         </div>
 
         <div class="rainbow-lodge-section">
@@ -357,7 +410,9 @@ export function initializeRsvpForm(dao: Dao) {
     `;
 
     // Add event listener for remove button
-    const removeBtn = personDiv.querySelector(".remove-person-btn") as HTMLButtonElement;
+    const removeBtn = personDiv.querySelector(
+      ".remove-person-btn"
+    ) as HTMLButtonElement;
     removeBtn?.addEventListener("click", () => {
       const hasData = personFormHasData(personDiv);
 
@@ -462,7 +517,9 @@ export function initializeRsvpForm(dao: Dao) {
     });
 
     // Add event listeners to all inputs to update delete button state
-    const allInputs = personDiv.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="checkbox"], textarea') as NodeListOf<HTMLInputElement | HTMLTextAreaElement>;
+    const allInputs = personDiv.querySelectorAll(
+      'input[type="text"], input[type="email"], input[type="tel"], input[type="checkbox"], textarea'
+    ) as NodeListOf<HTMLInputElement | HTMLTextAreaElement>;
     allInputs.forEach((input) => {
       input.addEventListener("input", updateDeleteButtonStates);
       input.addEventListener("change", updateDeleteButtonStates);
@@ -503,8 +560,12 @@ export function initializeRsvpForm(dao: Dao) {
       const personIdx = personForm.getAttribute("data-person-idx");
       if (!personIdx) return;
 
-      const firstName = String(fd.get(`person-${personIdx}-firstName`) ?? "").trim();
-      const lastName = String(fd.get(`person-${personIdx}-lastName`) ?? "").trim();
+      const firstName = String(
+        fd.get(`person-${personIdx}-firstName`) ?? ""
+      ).trim();
+      const lastName = String(
+        fd.get(`person-${personIdx}-lastName`) ?? ""
+      ).trim();
       const email = String(fd.get(`person-${personIdx}-email`) ?? "").trim();
       const phone = String(fd.get(`person-${personIdx}-phone`) ?? "").trim();
 
@@ -599,7 +660,7 @@ export function initializeRsvpForm(dao: Dao) {
 
     let html = "";
 
-    people.forEach((person, index) => {
+    people.forEach((person) => {
       html += `<div class="preview-person">`;
       html += `<h3>${person.firstName} ${person.lastName}</h3>`;
 
@@ -620,8 +681,13 @@ export function initializeRsvpForm(dao: Dao) {
       }
 
       // Check if meals contains more than just the default saturday-dinner
-      const nonDefaultMeals = person.meals?.filter(m => m !== "saturday-dinner") || [];
-      if (person.meals && person.meals.length > 0 && nonDefaultMeals.length > 0) {
+      const nonDefaultMeals =
+        person.meals?.filter((m) => m !== "saturday-dinner") || [];
+      if (
+        person.meals &&
+        person.meals.length > 0 &&
+        nonDefaultMeals.length > 0
+      ) {
         html += `<p><strong>Meals:</strong></p><ul style="margin: 0.25rem 0 0 1.5rem;">`;
         person.meals.forEach((meal) => {
           html += `<li>${mealLabels[meal] || meal}</li>`;
@@ -689,9 +755,12 @@ export function initializeRsvpForm(dao: Dao) {
 
       // Generate a unique family key and name
       const timestamp = Date.now();
-      const firstLastName = people[0]?.lastName?.toLowerCase().replace(/\s+/g, "_") || "guest";
+      const firstLastName =
+        people[0]?.lastName?.toLowerCase().replace(/\s+/g, "_") || "guest";
       const familyKey = `${firstLastName}_${timestamp}`;
-      const familyName = people.map(p => `${p.firstName} ${p.lastName}`).join(", ");
+      const familyName = people
+        .map((p) => `${p.firstName} ${p.lastName}`)
+        .join(", ");
 
       const familyResponse: FamilyResponse = {
         familyKey,
