@@ -336,6 +336,9 @@ export function initializeRsvpForm(dao: Dao) {
         // If we just deleted the last person, add a new blank one
         if (isLastPerson) {
           addPersonForm();
+        } else {
+          // Update delete button states after removal
+          updateDeleteButtonStates();
         }
       };
 
@@ -423,8 +426,16 @@ export function initializeRsvpForm(dao: Dao) {
       checkbox.addEventListener("change", updateCostDisplay);
     });
 
+    // Add event listeners to all inputs to update delete button state
+    const allInputs = personDiv.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="checkbox"], textarea') as NodeListOf<HTMLInputElement | HTMLTextAreaElement>;
+    allInputs.forEach((input) => {
+      input.addEventListener("input", updateDeleteButtonStates);
+      input.addEventListener("change", updateDeleteButtonStates);
+    });
+
     peopleContainer.appendChild(personDiv);
     updateCostDisplay();
+    updateDeleteButtonStates();
   };
 
   const resetForm = () => {
@@ -440,6 +451,7 @@ export function initializeRsvpForm(dao: Dao) {
   // Add person button handler
   addPersonBtn.addEventListener("click", () => {
     addPersonForm();
+    // Note: updateDeleteButtonStates() is already called at the end of addPersonForm()
   });
 
   // Start with one empty person form
@@ -458,7 +470,7 @@ export function initializeRsvpForm(dao: Dao) {
       const personForms = peopleContainer.querySelectorAll(".person-form");
 
       // Collect data for each person
-      personForms.forEach((personForm, idx) => {
+      personForms.forEach((personForm) => {
         const personIdx = personForm.getAttribute("data-person-idx");
         if (!personIdx) return;
 

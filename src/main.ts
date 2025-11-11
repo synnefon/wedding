@@ -1,6 +1,6 @@
-import { Dao, type RSVP, type FamilyResponse } from "./Dao";
-import { Router } from "./router";
+import { Dao } from "./Dao";
 import { initializeFaqs } from "./faqs";
+import { Router } from "./router";
 import { initializeRsvpForm } from "./rsvpForm";
 import "./style.css";
 
@@ -8,9 +8,6 @@ const routes: Record<string, string> = {
   "/404": "/pages/404.html",
   "/rsvp": "/pages/rsvp.html",
 };
-
-const fetchElement = <T extends HTMLElement>(id: string): T | null =>
-  document.getElementById(id) as T | null;
 
 const dao = new Dao();
 
@@ -52,20 +49,6 @@ function initializeRsvpButton(router: Router) {
   rsvpButton.addEventListener("click", (e) => {
     e.preventDefault();
     router.navigate("/rsvp");
-  });
-}
-
-/** Handle back link navigation */
-function initializeBackLink(router: Router) {
-  const backLink = document.querySelector(".back-link");
-  if (!backLink) return;
-
-  backLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    const href = backLink.getAttribute("href");
-    if (href) {
-      router.navigate(href);
-    }
   });
 }
 

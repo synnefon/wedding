@@ -620,6 +620,19 @@ section.rsvp> .section-content {
   filter: invert(39%) sepia(55%) saturate(468%) hue-rotate(343deg) brightness(91%) contrast(89%);
 }
 
+.person-form .remove-person-btn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.person-form .remove-person-btn.disabled .trash-icon {
+  filter: brightness(0) saturate(100%) opacity(0.3);
+}
+
+.person-form .remove-person-btn.disabled:hover .trash-icon {
+  filter: brightness(0) saturate(100%) opacity(0.3);
+}
+
 .person-form .coming-selector {
   display: flex;
   align-items: center;
