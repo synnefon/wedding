@@ -15,6 +15,7 @@ const initializeMainPageBehavior = (router: Router) => {
   initializeScrollHighlighting();
   initializeScheduleTabs();
   initializeRsvpButton(router);
+  initializeLetterLink(router);
   // initializeBackLink(router);
   initializeRsvpForm(dao);
   initializeFaqs(dao);
@@ -23,8 +24,29 @@ const initializeMainPageBehavior = (router: Router) => {
 window.addEventListener("DOMContentLoaded", () => {
   const app = document.querySelector<HTMLDivElement>("#app")!;
 
+  // Check if mobile device - multiple detection methods
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent);
+  const isMobileScreen = window.innerWidth < 768 || window.innerHeight < 600;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isMobile = isMobileUA || (isMobileScreen && isTouchDevice);
+
   const router = new Router({
     onRoute: async (path: string) => {
+      // Block mobile on home and RSVP only
+      if (isMobile && (path === "/" || path === "" || path === "/rsvp")) {
+        app.innerHTML = `
+          <div class="mobile-warning">
+            <div class="mobile-warning-content">
+              <h1>Desktop Required</h1>
+              <p>Please visit this site on a desktop or laptop computer for the best experience.</p>
+              <p>Mobile viewing is not currently supported.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
       if (path === "/" || path === "") {
         initializeMainPageBehavior(router);
         return;
@@ -47,6 +69,17 @@ function initializeRsvpButton(router: Router) {
   if (!rsvpButton) return;
 
   rsvpButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    router.navigate("/rsvp");
+  });
+}
+
+/** Letter image navigation */
+function initializeLetterLink(router: Router) {
+  const letterLink = document.getElementById("letter-link");
+  if (!letterLink) return;
+
+  letterLink.addEventListener("click", (e) => {
     e.preventDefault();
     router.navigate("/rsvp");
   });

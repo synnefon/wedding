@@ -154,8 +154,7 @@ export function initializeRsvpForm(dao: Dao) {
     "saturday-breakfast": 50,
     "saturday-lunch": 50,
     "saturday-dinner": 0, // complimentary
-    "sunday-breakfast": 0, // complimentary
-    "sunday-lunch": 50,
+    "sunday-brunch": 0, // complimentary
   };
   const LODGE_NIGHT_COST = 100;
 
@@ -321,16 +320,10 @@ export function initializeRsvpForm(dao: Dao) {
               <span>Saturday wedding dinner <span class="complimentary">(complimentary)</span></span>
             </label>
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="sunday-breakfast" ${
-      person?.meals?.includes("sunday-breakfast") ? "checked" : ""
+              <input type="checkbox" name="person-${idx}-meal" value="sunday-brunch" ${
+      person?.meals?.includes("sunday-brunch") || person?.meals?.includes("sunday-breakfast") || person?.meals?.includes("sunday-lunch") ? "checked" : ""
     } />
-              <span>Sunday breakfast <span class="complimentary">(complimentary)</span></span>
-            </label>
-            <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="sunday-lunch" ${
-      person?.meals?.includes("sunday-lunch") ? "checked" : ""
-    } />
-              Sunday lunch
+              <span>Sunday brunch <span class="complimentary">(complimentary)</span></span>
             </label>
           </div>
         </div>
@@ -509,6 +502,51 @@ export function initializeRsvpForm(dao: Dao) {
       checkbox.addEventListener("change", updateCostDisplay);
     });
 
+    // Auto-check Friday dinner when Friday lodge is selected
+    const fridayLodgeCheckbox = personDiv.querySelector(
+      `input[name="person-${idx}-lodge"][value="friday"]`
+    ) as HTMLInputElement;
+    const fridayDinnerCheckbox = personDiv.querySelector(
+      `input[name="person-${idx}-meal"][value="friday-dinner"]`
+    ) as HTMLInputElement;
+
+    if (fridayLodgeCheckbox && fridayDinnerCheckbox) {
+      // Track if Friday dinner was auto-checked (not manually checked by user)
+      let wasAutoChecked = false;
+
+      fridayLodgeCheckbox.addEventListener("change", () => {
+        if (fridayLodgeCheckbox.checked) {
+          // Turning ON Friday lodge: always turn ON Friday dinner
+          if (!fridayDinnerCheckbox.checked) {
+            fridayDinnerCheckbox.checked = true;
+            wasAutoChecked = true;
+            updateCostDisplay();
+          }
+        } else {
+          // Turning OFF Friday lodge: only turn OFF Friday dinner if it was auto-checked
+          if (wasAutoChecked) {
+            fridayDinnerCheckbox.checked = false;
+            wasAutoChecked = false;
+            updateCostDisplay();
+          }
+        }
+      });
+
+      // Track manual changes to Friday dinner
+      fridayDinnerCheckbox.addEventListener("change", () => {
+        // If user manually checks/unchecks, it's no longer auto-checked
+        if (fridayLodgeCheckbox.checked) {
+          wasAutoChecked = false;
+        }
+      });
+
+      // Also check Friday dinner on initialization if Friday lodge is already checked
+      if (fridayLodgeCheckbox.checked && !fridayDinnerCheckbox.checked) {
+        fridayDinnerCheckbox.checked = true;
+        wasAutoChecked = true;
+      }
+    }
+
     const mealCheckboxes = personDiv.querySelectorAll(
       `input[name="person-${idx}-meal"]`
     ) as NodeListOf<HTMLInputElement>;
@@ -640,11 +678,10 @@ export function initializeRsvpForm(dao: Dao) {
   const generatePreviewHTML = (people: RSVP[]): string => {
     const mealLabels: Record<string, string> = {
       "friday-dinner": "Friday rehearsal dinner",
-      "saturday-breakfast": "Saturday breakfast ($50)",
-      "saturday-lunch": "Saturday lunch ($50)",
+      "saturday-breakfast": "Saturday breakfast",
+      "saturday-lunch": "Saturday lunch",
       "saturday-dinner": "Saturday wedding dinner",
-      "sunday-breakfast": "Sunday breakfast",
-      "sunday-lunch": "Sunday lunch ($50)",
+      "sunday-brunch": "Sunday brunch",
     };
 
     const dietaryLabels: Record<string, string> = {
@@ -675,7 +712,7 @@ export function initializeRsvpForm(dao: Dao) {
         const nights = person.rainbowLodgeNights
           .map((n) => n.charAt(0).toUpperCase() + n.slice(1))
           .join(", ");
-        html += `<p><strong>Staying at Rainbow Lodge:</strong> ${nights} night(s) ($100/night)</p>`;
+        html += `<p><strong>Staying at Rainbow Lodge:</strong> ${nights}</p>`;
       } else {
         html += `<p><strong>Staying at Rainbow Lodge:</strong> N/A</p>`;
       }
@@ -688,8 +725,20 @@ export function initializeRsvpForm(dao: Dao) {
         person.meals.length > 0 &&
         nonDefaultMeals.length > 0
       ) {
+        // Sort meals in the same order as the UI
+        const mealOrder = [
+          "friday-dinner",
+          "saturday-breakfast",
+          "saturday-lunch",
+          "saturday-dinner",
+          "sunday-brunch",
+        ];
+        const sortedMeals = person.meals.sort((a, b) => {
+          return mealOrder.indexOf(a) - mealOrder.indexOf(b);
+        });
+
         html += `<p><strong>Meals:</strong></p><ul style="margin: 0.25rem 0 0 1.5rem;">`;
-        person.meals.forEach((meal) => {
+        sortedMeals.forEach((meal) => {
           html += `<li>${mealLabels[meal] || meal}</li>`;
         });
         html += `</ul>`;
