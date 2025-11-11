@@ -763,10 +763,10 @@ export function initializeRsvpForm(dao: Dao) {
         person.dietaryRestrictions.forEach((restriction) => {
           html += `<li>${dietaryLabels[restriction] || restriction}</li>`;
         });
-        html += `</ul>`;
         if (person.dietaryNotes) {
-          html += `<p style="margin-left: 1.5rem;"><em>${person.dietaryNotes}</em></p>`;
+          html += `<li><em>${person.dietaryNotes}</em></li>`;
         }
+        html += `</ul>`;
       } else {
         html += `<p><strong>Dietary Restrictions:</strong> N/A</p>`;
       }

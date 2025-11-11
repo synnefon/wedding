@@ -24,6 +24,9 @@ const initializeMainPageBehavior = (router: Router) => {
 window.addEventListener("DOMContentLoaded", () => {
   const app = document.querySelector<HTMLDivElement>("#app")!;
 
+  // Store the original home page content
+  const originalHomeContent = app.innerHTML;
+
   // Check if mobile device - multiple detection methods
   const userAgent = navigator.userAgent.toLowerCase();
   const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent);
@@ -48,6 +51,8 @@ window.addEventListener("DOMContentLoaded", () => {
       }
 
       if (path === "/" || path === "") {
+        // Restore original home page content
+        app.innerHTML = originalHomeContent;
         initializeMainPageBehavior(router);
         return;
       } else if (routes[path]) {
