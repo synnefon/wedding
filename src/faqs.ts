@@ -11,6 +11,23 @@ export function initializeFaqs(dao: Dao) {
 
     if (!listEl) return;
 
+    // Handle scroll passthrough when at top boundary
+    const faqScrollEl = document.querySelector(".faq-scroll") as HTMLDivElement | null;
+    if (faqScrollEl) {
+        faqScrollEl.addEventListener("wheel", (e) => {
+            const atTop = faqScrollEl.scrollTop === 0;
+            const scrollingUp = e.deltaY < 0;
+
+            // Only allow passthrough to page when at top AND scrolling up
+            if (atTop && scrollingUp) {
+                return; // Let it bubble to page
+            }
+
+            // Otherwise, keep scroll contained to FAQ
+            e.stopPropagation();
+        }, { passive: true });
+    }
+
     const setStatus = (msg: string, ok = false) => {
         if (!statusEl) return;
         statusEl.textContent = msg;
