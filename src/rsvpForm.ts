@@ -21,9 +21,13 @@ export function initializeRsvpForm(dao: Dao) {
   const confirmModal = document.getElementById("confirm-modal") as HTMLDivElement | null;
   const confirmCancelBtn = document.getElementById("confirm-cancel") as HTMLButtonElement | null;
   const confirmDeleteBtn = document.getElementById("confirm-delete") as HTMLButtonElement | null;
+  const previewModal = document.getElementById("preview-modal") as HTMLDivElement | null;
+  const previewContent = document.getElementById("preview-content") as HTMLDivElement | null;
+  const previewCancelBtn = document.getElementById("preview-cancel") as HTMLButtonElement | null;
+  const previewConfirmBtn = document.getElementById("preview-confirm") as HTMLButtonElement | null;
   const successOverlay = document.getElementById("success-overlay") as HTMLDivElement | null;
 
-  if (!form || !peopleContainer || !addPersonBtn || !noteEl || !errorModal || !errorMessage || !closeErrorBtn || !confirmModal || !confirmCancelBtn || !confirmDeleteBtn || !successOverlay) return;
+  if (!form || !peopleContainer || !addPersonBtn || !noteEl || !errorModal || !errorMessage || !closeErrorBtn || !confirmModal || !confirmCancelBtn || !confirmDeleteBtn || !previewModal || !previewContent || !previewCancelBtn || !previewConfirmBtn || !successOverlay) return;
 
   let personCount = 0;
 
@@ -52,6 +56,14 @@ export function initializeRsvpForm(dao: Dao) {
     confirmModal.classList.add("hidden");
   };
 
+  const showPreviewModal = () => {
+    previewModal.classList.remove("hidden");
+  };
+
+  const hidePreviewModal = () => {
+    previewModal.classList.add("hidden");
+  };
+
   // Close error modal on button click
   closeErrorBtn.addEventListener("click", hideErrorModal);
 
@@ -69,6 +81,29 @@ export function initializeRsvpForm(dao: Dao) {
   confirmModal.addEventListener("click", (e) => {
     if (e.target === confirmModal) {
       hideConfirmModal();
+    }
+  });
+
+  // Close preview modal on cancel button
+  previewCancelBtn.addEventListener("click", hidePreviewModal);
+
+  // Close preview modal on backdrop click
+  previewModal.addEventListener("click", (e) => {
+    if (e.target === previewModal) {
+      hidePreviewModal();
+    }
+  });
+
+  // Close any modal on escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (!errorModal.classList.contains("hidden")) {
+        hideErrorModal();
+      } else if (!confirmModal.classList.contains("hidden")) {
+        hideConfirmModal();
+      } else if (!previewModal.classList.contains("hidden")) {
+        hidePreviewModal();
+      }
     }
   });
 
@@ -457,99 +492,200 @@ export function initializeRsvpForm(dao: Dao) {
   // Start with one empty person form
   addPersonForm();
 
-  // Handle form submission
+  // Function to collect form data
+  const collectFormData = (): RSVP[] => {
+    const fd = new FormData(form);
+    const people: RSVP[] = [];
+    const personForms = peopleContainer.querySelectorAll(".person-form");
+
+    // Collect data for each person
+    personForms.forEach((personForm) => {
+      const personIdx = personForm.getAttribute("data-person-idx");
+      if (!personIdx) return;
+
+      const firstName = String(fd.get(`person-${personIdx}-firstName`) ?? "").trim();
+      const lastName = String(fd.get(`person-${personIdx}-lastName`) ?? "").trim();
+      const email = String(fd.get(`person-${personIdx}-email`) ?? "").trim();
+      const phone = String(fd.get(`person-${personIdx}-phone`) ?? "").trim();
+
+      // Collect Rainbow Lodge nights
+      const rainbowLodgeNights: string[] = [];
+      const lodgeInputs = personForm.querySelectorAll(
+        `input[name="person-${personIdx}-lodge"]:checked`
+      ) as NodeListOf<HTMLInputElement>;
+      lodgeInputs.forEach((input) => {
+        rainbowLodgeNights.push(input.value);
+      });
+
+      // Collect meals
+      const meals: string[] = [];
+      // Always include Saturday/main dinner (it's checked and disabled)
+      meals.push("saturday-dinner");
+
+      // Collect other checked meals
+      const mealInputs = personForm.querySelectorAll(
+        `input[name="person-${personIdx}-meal"]:checked:not([disabled])`
+      ) as NodeListOf<HTMLInputElement>;
+      mealInputs.forEach((input) => {
+        meals.push(input.value);
+      });
+
+      // Collect dietary restrictions
+      const dietaryRestrictions: string[] = [];
+      const dietaryInputs = personForm.querySelectorAll(
+        `input[name="person-${personIdx}-dietary"]:checked`
+      ) as NodeListOf<HTMLInputElement>;
+      dietaryInputs.forEach((input) => {
+        dietaryRestrictions.push(input.value);
+      });
+
+      const dietaryNotes = dietaryRestrictions.includes("other")
+        ? String(fd.get(`person-${personIdx}-dietary-notes`) ?? "").trim()
+        : "";
+
+      // Overnight is true if they selected any lodge nights
+      const overnight = rainbowLodgeNights.length > 0;
+
+      // Build person object, only including optional fields if they have values
+      const person: RSVP = {
+        firstName,
+        lastName,
+        email,
+        phone,
+        coming: true,
+        overnight,
+      };
+
+      if (rainbowLodgeNights.length > 0) {
+        person.rainbowLodgeNights = rainbowLodgeNights;
+      }
+      if (meals.length > 0) {
+        person.meals = meals;
+      }
+      if (dietaryRestrictions.length > 0) {
+        person.dietaryRestrictions = dietaryRestrictions;
+      }
+      if (dietaryNotes) {
+        person.dietaryNotes = dietaryNotes;
+      }
+
+      people.push(person);
+    });
+
+    return people;
+  };
+
+  // Function to generate preview HTML
+  const generatePreviewHTML = (people: RSVP[]): string => {
+    const mealLabels: Record<string, string> = {
+      "friday-dinner": "Friday rehearsal dinner",
+      "saturday-breakfast": "Saturday breakfast ($50)",
+      "saturday-lunch": "Saturday lunch ($50)",
+      "saturday-dinner": "Saturday wedding dinner",
+      "sunday-breakfast": "Sunday breakfast",
+      "sunday-lunch": "Sunday lunch ($50)",
+    };
+
+    const dietaryLabels: Record<string, string> = {
+      vegetarian: "Vegetarian",
+      vegan: "Vegan",
+      pescatarian: "Pescatarian",
+      "dairy-free": "Dairy-free",
+      "nut-free": "Nut-free",
+      "egg-free": "Egg-free",
+      "gluten-free": "Gluten-free",
+      other: "Other",
+    };
+
+    let html = "";
+
+    people.forEach((person, index) => {
+      html += `<div class="preview-person">`;
+      html += `<h3>${person.firstName} ${person.lastName}</h3>`;
+
+      if (person.email) {
+        html += `<p><strong>Email:</strong> ${person.email}</p>`;
+      }
+      if (person.phone) {
+        html += `<p><strong>Phone:</strong> ${person.phone}</p>`;
+      }
+
+      if (person.rainbowLodgeNights && person.rainbowLodgeNights.length > 0) {
+        const nights = person.rainbowLodgeNights
+          .map((n) => n.charAt(0).toUpperCase() + n.slice(1))
+          .join(", ");
+        html += `<p><strong>Staying at Rainbow Lodge:</strong> ${nights} night(s) ($100/night)</p>`;
+      } else {
+        html += `<p><strong>Staying at Rainbow Lodge:</strong> N/A</p>`;
+      }
+
+      // Check if meals contains more than just the default saturday-dinner
+      const nonDefaultMeals = person.meals?.filter(m => m !== "saturday-dinner") || [];
+      if (person.meals && person.meals.length > 0 && nonDefaultMeals.length > 0) {
+        html += `<p><strong>Meals:</strong></p><ul style="margin: 0.25rem 0 0 1.5rem;">`;
+        person.meals.forEach((meal) => {
+          html += `<li>${mealLabels[meal] || meal}</li>`;
+        });
+        html += `</ul>`;
+      } else {
+        html += `<p><strong>Meals:</strong> Saturday wedding dinner only</p>`;
+      }
+
+      if (person.dietaryRestrictions && person.dietaryRestrictions.length > 0) {
+        html += `<p><strong>Dietary Restrictions:</strong></p><ul style="margin: 0.25rem 0 0 1.5rem;">`;
+        person.dietaryRestrictions.forEach((restriction) => {
+          html += `<li>${dietaryLabels[restriction] || restriction}</li>`;
+        });
+        html += `</ul>`;
+        if (person.dietaryNotes) {
+          html += `<p style="margin-left: 1.5rem;"><em>${person.dietaryNotes}</em></p>`;
+        }
+      } else {
+        html += `<p><strong>Dietary Restrictions:</strong> N/A</p>`;
+      }
+
+      html += `</div>`;
+    });
+
+    const total = calculateTotalCost();
+    html += `<div class="preview-total">Total Cost: $${total}</div>`;
+
+    return html;
+  };
+
+  // Handle form submission - show preview
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!submitBtn) return;
-    submitBtn.disabled = true;
 
     try {
-      const fd = new FormData(form);
-      const people: RSVP[] = [];
-
-      const personForms = peopleContainer.querySelectorAll(".person-form");
-
-      // Collect data for each person
-      personForms.forEach((personForm) => {
-        const personIdx = personForm.getAttribute("data-person-idx");
-        if (!personIdx) return;
-
-        const firstName = String(fd.get(`person-${personIdx}-firstName`) ?? "").trim();
-        const lastName = String(fd.get(`person-${personIdx}-lastName`) ?? "").trim();
-        const email = String(fd.get(`person-${personIdx}-email`) ?? "").trim();
-        const phone = String(fd.get(`person-${personIdx}-phone`) ?? "").trim();
-
-        // Collect Rainbow Lodge nights
-        const rainbowLodgeNights: string[] = [];
-        const lodgeInputs = personForm.querySelectorAll(
-          `input[name="person-${personIdx}-lodge"]:checked`
-        ) as NodeListOf<HTMLInputElement>;
-        lodgeInputs.forEach((input) => {
-          rainbowLodgeNights.push(input.value);
-        });
-
-        // Collect meals
-        const meals: string[] = [];
-        // Always include Saturday/main dinner (it's checked and disabled)
-        meals.push("saturday-dinner");
-
-        // Collect other checked meals
-        const mealInputs = personForm.querySelectorAll(
-          `input[name="person-${personIdx}-meal"]:checked:not([disabled])`
-        ) as NodeListOf<HTMLInputElement>;
-        mealInputs.forEach((input) => {
-          meals.push(input.value);
-        });
-
-        // Collect dietary restrictions
-        const dietaryRestrictions: string[] = [];
-        const dietaryInputs = personForm.querySelectorAll(
-          `input[name="person-${personIdx}-dietary"]:checked`
-        ) as NodeListOf<HTMLInputElement>;
-        dietaryInputs.forEach((input) => {
-          dietaryRestrictions.push(input.value);
-        });
-
-        const dietaryNotes = dietaryRestrictions.includes("other")
-          ? String(fd.get(`person-${personIdx}-dietary-notes`) ?? "").trim()
-          : "";
-
-        // Overnight is true if they selected any lodge nights
-        const overnight = rainbowLodgeNights.length > 0;
-
-        // Build person object, only including optional fields if they have values
-        const person: RSVP = {
-          firstName,
-          lastName,
-          email,
-          phone,
-          coming: true,
-          overnight,
-        };
-
-        if (rainbowLodgeNights.length > 0) {
-          person.rainbowLodgeNights = rainbowLodgeNights;
-        }
-        if (meals.length > 0) {
-          person.meals = meals;
-        }
-        if (dietaryRestrictions.length > 0) {
-          person.dietaryRestrictions = dietaryRestrictions;
-        }
-        if (dietaryNotes) {
-          person.dietaryNotes = dietaryNotes;
-        }
-
-        people.push(person);
-      });
+      const people = collectFormData();
 
       // Validate: at least one person must have email and phone
       const hasContact = people.some((p) => p.email && p.phone);
       if (!hasContact) {
         showErrorModal("At least one person needs to provide email and phone");
-        submitBtn.disabled = false;
         return;
       }
+
+      // Generate and show preview
+      const previewHTML = generatePreviewHTML(people);
+      previewContent.innerHTML = previewHTML;
+      showPreviewModal();
+    } catch (err) {
+      console.error(err);
+      showErrorModal("Oops—couldn't process your response. Please try again.");
+    }
+  });
+
+  // Handle preview confirmation - actual submission
+  previewConfirmBtn.addEventListener("click", async () => {
+    if (!submitBtn) return;
+    submitBtn.disabled = true;
+    previewConfirmBtn.disabled = true;
+
+    try {
+      const people = collectFormData();
 
       // Generate a unique family key and name
       const timestamp = Date.now();
@@ -565,6 +701,9 @@ export function initializeRsvpForm(dao: Dao) {
 
       await dao.saveFamilyResponse(familyResponse);
 
+      // Hide preview modal
+      hidePreviewModal();
+
       // Show success overlay
       showSuccessOverlay();
 
@@ -573,11 +712,14 @@ export function initializeRsvpForm(dao: Dao) {
         hideSuccessOverlay();
         resetForm();
         submitBtn.disabled = false;
+        previewConfirmBtn.disabled = false;
       }, 3000);
     } catch (err) {
       console.error(err);
+      hidePreviewModal();
       showErrorModal("Oops—couldn't save your response. Please try again.");
       submitBtn.disabled = false;
+      previewConfirmBtn.disabled = false;
     }
   });
 }

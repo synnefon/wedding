@@ -982,7 +982,7 @@ section.rsvp> .section-content {
 .modal-content h2 {
   margin-top: 0;
   color: var(--alt-bg);
-  font-family: "DMSerifDisplay";
+  font-family: "SUSE_Mono";
   font-size: xx-large;
 }
 
@@ -1023,6 +1023,75 @@ section.rsvp> .section-content {
   background-color: var(--shifted-bg);
 }
 
+/* Preview Modal */
+.preview-modal-content {
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.preview-modal-content h2 {
+  font-family: "SUSE_Mono";
+}
+
+.preview-content {
+  text-align: left;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 2px solid var(--pop);
+  background-color: rgba(0, 0, 0, 0.02);
+  max-height: 50vh;
+  overflow-y: auto;
+  font-family: "SUSE_Mono";
+}
+
+.preview-person {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--alt-bg);
+}
+
+.preview-person:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.preview-person h3 {
+  margin: 0 0 0.75rem 0;
+  color: var(--alt-bg);
+  font-family: "SUSE_Mono";
+  font-size: x-large;
+  font-weight: bold;
+}
+
+.preview-person p {
+  margin: 0.25rem 0;
+  font-size: medium;
+  line-height: 1.6;
+  font-family: "SUSE_Mono";
+}
+
+.preview-person strong {
+  color: var(--text);
+}
+
+.preview-person ul {
+  font-family: "SUSE_Mono";
+}
+
+.preview-person li {
+  font-family: "SUSE_Mono";
+}
+
+.preview-total {
+  margin-top: 1rem;
+  font-size: large;
+  font-weight: bold;
+  text-align: right;
+  color: var(--text);
+  font-family: "SUSE_Mono";
+}
+
 /* Success Overlay */
 .success-overlay {
   position: fixed;
@@ -1048,7 +1117,7 @@ section.rsvp> .section-content {
 }
 
 .success-content h1 {
-  font-family: "DMSerifDisplay";
+  font-family: "SUSE_Mono";
   font-size: 4rem;
   color: var(--pop);
   margin: 0 0 1rem 0;
