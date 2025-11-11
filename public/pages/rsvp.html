@@ -1,4 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/src/style.css">
+  <title>RSVP - Claire & Connor</title>
+</head>
+<body>
+  <div id="app">
+    <div class="rsvp-page">
+      <h1>RSVP</h1>
 
+      <form id="rsvp-form" class="rsvp-form">
+        <div class="people-section">
+          <button type="button" id="add-person-btn" class="add-person-btn">+</button>
+          <div id="people-forms-container"></div>
+        </div>
 
-<!-- Make sure this is at the end of <body> and is a module -->
-<script type="module" src="/src/main.ts"></script>
+        <div id="rsvp-cost-display" class="rsvp-cost-display">
+          <p id="rsvp-cost" class="rsvp-cost">Total: $0</p>
+        </div>
+
+        <button type="submit" id="rsvp-submit" class="submit rsvp">Submit RSVP</button>
+        <p id="rsvp-status" class="rsvp-status"></p>
+        <p class="rsvp-note"></p>
+      </form>
+
+      <a href="/" class="back-link">← Back to main page</a>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
