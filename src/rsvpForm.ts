@@ -151,12 +151,12 @@ export function initializeRsvpForm(dao: Dao) {
   // Cost calculation
   const MEAL_COSTS: Record<string, number> = {
     "friday-dinner": 0, // complimentary
-    "saturday-breakfast": 50,
-    "saturday-lunch": 50,
+    "saturday-breakfast": 17,
+    "saturday-lunch": 17,
     "saturday-dinner": 0, // complimentary
     "sunday-brunch": 0, // complimentary
   };
-  const LODGE_NIGHT_COST = 100;
+  const LODGE_NIGHT_COST = 110;
 
   const calculateTotalCost = (): number => {
     let total = 0;
@@ -248,15 +248,13 @@ export function initializeRsvpForm(dao: Dao) {
         <div class="person-name-inputs">
           <div class="name-input-group">
             <label>First Name <span class="required">*</span></label>
-            <input type="text" name="person-${idx}-firstName" value="${
-      person?.firstName || ""
-    }" required />
+            <input type="text" name="person-${idx}-firstName" value="${person?.firstName || ""
+      }" required />
           </div>
           <div class="name-input-group">
             <label>Last Name <span class="required">*</span></label>
-            <input type="text" name="person-${idx}-lastName" value="${
-      person?.lastName || ""
-    }" required />
+            <input type="text" name="person-${idx}-lastName" value="${person?.lastName || ""
+      }" required />
           </div>
         </div>
         <button type="button" class="remove-person-btn" data-remove-idx="${idx}">
@@ -267,28 +265,24 @@ export function initializeRsvpForm(dao: Dao) {
       <div class="person-details">
         <div class="contact-info-section">
           <label>Email <span class="optional"></span></label>
-          <input type="email" name="person-${idx}-email" value="${
-      person?.email || ""
-    }" />
+          <input type="email" name="person-${idx}-email" value="${person?.email || ""
+      }" />
           <label>Phone <span class="optional"></span></label>
-          <input type="tel" name="person-${idx}-phone" value="${
-      person?.phone || ""
-    }" />
+          <input type="tel" name="person-${idx}-phone" value="${person?.phone || ""
+      }" />
         </div>
 
         <div class="rainbow-lodge-section">
           <label class="section-label">Staying at Rainbow Lodge?</label>
           <div class="rainbow-lodge-nights">
             <label class="night-checkbox">
-              <input type="checkbox" name="person-${idx}-lodge" value="friday" ${
-      person?.rainbowLodgeNights?.includes("friday") ? "checked" : ""
-    } />
+              <input type="checkbox" name="person-${idx}-lodge" value="friday" ${person?.rainbowLodgeNights?.includes("friday") ? "checked" : ""
+      } />
               Friday night
             </label>
             <label class="night-checkbox">
-              <input type="checkbox" name="person-${idx}-lodge" value="saturday" ${
-      person?.rainbowLodgeNights?.includes("saturday") ? "checked" : ""
-    } />
+              <input type="checkbox" name="person-${idx}-lodge" value="saturday" ${person?.rainbowLodgeNights?.includes("saturday") ? "checked" : ""
+      } />
               Saturday night
             </label>
           </div>
@@ -298,21 +292,18 @@ export function initializeRsvpForm(dao: Dao) {
           <label class="section-label">Joining us for meals?</label>
           <div class="meals-list">
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="friday-dinner" ${
-      person?.meals?.includes("friday-dinner") ? "checked" : ""
-    } />
+              <input type="checkbox" name="person-${idx}-meal" value="friday-dinner" ${person?.meals?.includes("friday-dinner") ? "checked" : ""
+      } />
               <span>Friday rehearsal dinner <span class="complimentary">(complimentary)</span></span>
             </label>
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="saturday-breakfast" ${
-      person?.meals?.includes("saturday-breakfast") ? "checked" : ""
-    } />
+              <input type="checkbox" name="person-${idx}-meal" value="saturday-breakfast" ${person?.meals?.includes("saturday-breakfast") ? "checked" : ""
+      } />
               Saturday breakfast
             </label>
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="saturday-lunch" ${
-      person?.meals?.includes("saturday-lunch") ? "checked" : ""
-    } />
+              <input type="checkbox" name="person-${idx}-meal" value="saturday-lunch" ${person?.meals?.includes("saturday-lunch") ? "checked" : ""
+      } />
               Saturday lunch
             </label>
             <label class="meal-checkbox">
@@ -320,9 +311,8 @@ export function initializeRsvpForm(dao: Dao) {
               <span>Saturday wedding dinner <span class="complimentary">(complimentary)</span></span>
             </label>
             <label class="meal-checkbox">
-              <input type="checkbox" name="person-${idx}-meal" value="sunday-brunch" ${
-      person?.meals?.includes("sunday-brunch") || person?.meals?.includes("sunday-breakfast") || person?.meals?.includes("sunday-lunch") ? "checked" : ""
-    } />
+              <input type="checkbox" name="person-${idx}-meal" value="sunday-brunch" ${person?.meals?.includes("sunday-brunch") || person?.meals?.includes("sunday-breakfast") || person?.meals?.includes("sunday-lunch") ? "checked" : ""
+      } />
               <span>Sunday brunch <span class="complimentary">(complimentary)</span></span>
             </label>
           </div>
@@ -330,83 +320,69 @@ export function initializeRsvpForm(dao: Dao) {
 
         <label class="dietary-toggle-label">
           Dietary Restrictions?
-          <input type="checkbox" class="dietary-toggle" data-dietary-idx="${idx}" ${
-      person?.dietaryRestrictions && person.dietaryRestrictions.length > 0
+          <input type="checkbox" class="dietary-toggle" data-dietary-idx="${idx}" ${person?.dietaryRestrictions && person.dietaryRestrictions.length > 0
         ? "checked"
         : ""
-    } />
+      } />
         </label>
 
-        <div class="dietary-options ${
-          person?.dietaryRestrictions && person.dietaryRestrictions.length > 0
-            ? ""
-            : "hidden"
-        }" id="dietary-${idx}">
+        <div class="dietary-options ${person?.dietaryRestrictions && person.dietaryRestrictions.length > 0
+        ? ""
+        : "hidden"
+      }" id="dietary-${idx}">
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="vegetarian" ${
-      person?.dietaryRestrictions?.includes("vegetarian") ? "checked" : ""
-    } />
+            <input type="checkbox" name="person-${idx}-dietary" value="vegetarian" ${person?.dietaryRestrictions?.includes("vegetarian") ? "checked" : ""
+      } />
             Vegetarian
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="vegan" ${
-      person?.dietaryRestrictions?.includes("vegan") ? "checked" : ""
-    } />
+            <input type="checkbox" name="person-${idx}-dietary" value="vegan" ${person?.dietaryRestrictions?.includes("vegan") ? "checked" : ""
+      } />
             Vegan
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="pescatarian" ${
-      person?.dietaryRestrictions?.includes("pescatarian") ? "checked" : ""
-    } />
+            <input type="checkbox" name="person-${idx}-dietary" value="pescatarian" ${person?.dietaryRestrictions?.includes("pescatarian") ? "checked" : ""
+      } />
             Pescatarian
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="dairy-free" ${
-      person?.dietaryRestrictions?.includes("dairy-free") ? "checked" : ""
-    } />
+            <input type="checkbox" name="person-${idx}-dietary" value="dairy-free" ${person?.dietaryRestrictions?.includes("dairy-free") ? "checked" : ""
+      } />
             Dairy-free
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="nut-free" ${
-      person?.dietaryRestrictions?.includes("nut-free") ? "checked" : ""
-    } />
+            <input type="checkbox" name="person-${idx}-dietary" value="nut-free" ${person?.dietaryRestrictions?.includes("nut-free") ? "checked" : ""
+      } />
             Nut-free
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="egg-free" ${
-      person?.dietaryRestrictions?.includes("egg-free") ? "checked" : ""
-    } />
+            <input type="checkbox" name="person-${idx}-dietary" value="egg-free" ${person?.dietaryRestrictions?.includes("egg-free") ? "checked" : ""
+      } />
             Egg-free
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="gluten-free" ${
-      person?.dietaryRestrictions?.includes("gluten-free") ? "checked" : ""
-    } />
+            <input type="checkbox" name="person-${idx}-dietary" value="gluten-free" ${person?.dietaryRestrictions?.includes("gluten-free") ? "checked" : ""
+      } />
             Gluten-free
           </label>
           <label class="dietary-checkbox">
-            <input type="checkbox" name="person-${idx}-dietary" value="other" ${
-      person?.dietaryRestrictions?.includes("other") ? "checked" : ""
-    } />
+            <input type="checkbox" name="person-${idx}-dietary" value="other" ${person?.dietaryRestrictions?.includes("other") ? "checked" : ""
+      } />
             Other
           </label>
-          <div class="dietary-notes ${
-            person?.dietaryRestrictions?.includes("other") ? "" : "hidden"
-          }" id="dietary-notes-${idx}">
+          <div class="dietary-notes ${person?.dietaryRestrictions?.includes("other") ? "" : "hidden"
+      }" id="dietary-notes-${idx}">
             <label>Please specify:</label>
-            <textarea name="person-${idx}-dietary-notes" rows="2" placeholder="Other dietary restrictions..." ${
-      person?.dietaryRestrictions?.includes("other") ? "required" : ""
-    }>${
-      person?.dietaryNotes || ""
-    }</textarea>
+            <textarea name="person-${idx}-dietary-notes" rows="2" placeholder="Other dietary restrictions..." ${person?.dietaryRestrictions?.includes("other") ? "required" : ""
+      }>${person?.dietaryNotes || ""
+      }</textarea>
           </div>
         </div>
 
         <div class="notes-section">
           <label>Additional Notes</label>
-          <textarea name="person-${idx}-notes" rows="3" placeholder="Anything else we should know...">${
-      person?.notes || ""
-    }</textarea>
+          <textarea name="person-${idx}-notes" rows="3" placeholder="Anything else we should know...">${person?.notes || ""
+      }</textarea>
         </div>
       </div>
     `;
@@ -562,6 +538,104 @@ export function initializeRsvpForm(dao: Dao) {
         wasAutoChecked = true;
       }
     }
+
+    // Auto-check Saturday breakfast & lunch when Friday lodge is selected
+    const saturdayLodgeCheckbox = personDiv.querySelector(
+      `input[name="person-${idx}-lodge"][value="saturday"]`
+    ) as HTMLInputElement;
+    const saturdayBreakfastCheckbox = personDiv.querySelector(
+      `input[name="person-${idx}-meal"][value="saturday-breakfast"]`
+    ) as HTMLInputElement;
+    const saturdayLunchCheckbox = personDiv.querySelector(
+      `input[name="person-${idx}-meal"][value="saturday-lunch"]`
+    ) as HTMLInputElement;
+
+    if (saturdayLodgeCheckbox && saturdayBreakfastCheckbox && saturdayLunchCheckbox) {
+      // Track if Saturday breakfast/lunch were auto-checked (not manually checked by user)
+      let wasBreakfastAutoChecked = false;
+      let wasLunchAutoChecked = false;
+
+      saturdayLodgeCheckbox.addEventListener("change", () => {
+        if (saturdayLodgeCheckbox.checked) {
+          // Turning ON Friday lodge: auto-check Saturday breakfast & lunch if not already checked
+          let changed = false;
+
+          if (!saturdayBreakfastCheckbox.checked) {
+            saturdayBreakfastCheckbox.checked = true;
+            wasBreakfastAutoChecked = true;
+            changed = true;
+          }
+
+          if (!saturdayLunchCheckbox.checked) {
+            saturdayLunchCheckbox.checked = true;
+            wasLunchAutoChecked = true;
+            changed = true;
+          }
+
+          if (changed) {
+            updateCostDisplay();
+          }
+        } else {
+          // Turning OFF Friday lodge: only uncheck if they were auto-checked
+          let changed = false;
+
+          if (wasBreakfastAutoChecked) {
+            saturdayBreakfastCheckbox.checked = false;
+            wasBreakfastAutoChecked = false;
+            changed = true;
+          }
+
+          if (wasLunchAutoChecked) {
+            saturdayLunchCheckbox.checked = false;
+            wasLunchAutoChecked = false;
+            changed = true;
+          }
+
+          if (changed) {
+            updateCostDisplay();
+          }
+        }
+      });
+
+      // Track manual changes to Saturday breakfast
+      saturdayBreakfastCheckbox.addEventListener("change", () => {
+        if (saturdayLodgeCheckbox.checked) {
+          wasBreakfastAutoChecked = false;
+        }
+        updateCostDisplay();
+      });
+
+      // Track manual changes to Saturday lunch
+      saturdayLunchCheckbox.addEventListener("change", () => {
+        if (saturdayLodgeCheckbox.checked) {
+          wasLunchAutoChecked = false;
+        }
+        updateCostDisplay();
+      });
+
+      // Also check Saturday breakfast & lunch on initialization
+      // if Friday lodge is already checked
+      if (saturdayLodgeCheckbox.checked) {
+        let changed = false;
+
+        if (!saturdayBreakfastCheckbox.checked) {
+          saturdayBreakfastCheckbox.checked = true;
+          wasBreakfastAutoChecked = true;
+          changed = true;
+        }
+
+        if (!saturdayLunchCheckbox.checked) {
+          saturdayLunchCheckbox.checked = true;
+          wasLunchAutoChecked = true;
+          changed = true;
+        }
+
+        if (changed) {
+          updateCostDisplay();
+        }
+      }
+    }
+
 
     const mealCheckboxes = personDiv.querySelectorAll(
       `input[name="person-${idx}-meal"]`

@@ -37,7 +37,7 @@ export function initializeFaqs(dao: Dao) {
 
     const render = (items: Array<{ id: string; data: FAQ }>) => {
         listEl.innerHTML = "";
-
+        items.reverse();
         for (const { id, data } of items) {
             const card = document.createElement("div");
             card.className = "faq-card";
@@ -47,7 +47,7 @@ export function initializeFaqs(dao: Dao) {
             const count = answers.length;
 
             // Default only if we haven't seen this id; otherwise respect remembered state.
-            const defaultOpen = count <= 2;
+            const defaultOpen = count <= 3;
             const isOpen = openAnswers.has(id) ? !!openAnswers.get(id) : defaultOpen;
 
             card.innerHTML = `
