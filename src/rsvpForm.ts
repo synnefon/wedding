@@ -238,6 +238,77 @@ export function initializeRsvpForm(dao: Dao) {
     });
   };
 
+  /**
+ * Auto-links a parent checkbox (like “Friday lodge”) to one or more dependent checkboxes
+ * so that:
+ * - When parent turns ON → all dependents auto-turn ON (unless already checked)
+ * - When parent turns OFF → only dependents that were auto-checked turn OFF
+ * - Manual toggles override auto-check behavior
+ */
+  function linkAutoChecks(
+    parent: HTMLInputElement | null,
+    dependents: HTMLInputElement[],
+    updateCost: () => void
+  ) {
+    if (!parent || dependents.length === 0) return;
+
+    // Track which dependents were auto-checked
+    const autoState = new WeakMap<HTMLInputElement, boolean>();
+
+    parent.addEventListener("change", () => {
+      if (parent.checked) {
+        let changed = false;
+
+        for (const dep of dependents) {
+          if (!dep.checked) {
+            dep.checked = true;
+            autoState.set(dep, true);
+            changed = true;
+          }
+        }
+
+        if (changed) updateCost();
+      } else {
+        // Parent turned OFF → uncheck only those auto-checked
+        let changed = false;
+
+        for (const dep of dependents) {
+          if (autoState.get(dep)) {
+            dep.checked = false;
+            autoState.set(dep, false);
+            changed = true;
+          }
+        }
+
+        if (changed) updateCost();
+      }
+    });
+
+    // Manual toggles override auto behavior
+    for (const dep of dependents) {
+      dep.addEventListener("change", () => {
+        autoState.set(dep, false);
+        updateCost();
+      });
+    }
+
+    // Initialization: if parent already checked, auto-check dependents
+    if (parent.checked) {
+      let changed = false;
+
+      for (const dep of dependents) {
+        if (!dep.checked) {
+          dep.checked = true;
+          autoState.set(dep, true);
+          changed = true;
+        }
+      }
+
+      if (changed) updateCost();
+    }
+  }
+
+
   const addPersonForm = (person?: RSVP) => {
     const idx = personCount++;
     const personDiv = document.createElement("div");
@@ -494,148 +565,35 @@ export function initializeRsvpForm(dao: Dao) {
       checkbox.addEventListener("change", updateCostDisplay);
     });
 
-    // Auto-check Friday dinner when Friday lodge is selected
-    const fridayLodgeCheckbox = personDiv.querySelector(
-      `input[name="person-${idx}-lodge"][value="friday"]`
-    ) as HTMLInputElement;
-    const fridayDinnerCheckbox = personDiv.querySelector(
-      `input[name="person-${idx}-meal"][value="friday-dinner"]`
-    ) as HTMLInputElement;
 
-    if (fridayLodgeCheckbox && fridayDinnerCheckbox) {
-      // Track if Friday dinner was auto-checked (not manually checked by user)
-      let wasAutoChecked = false;
+    // Friday lodge → Friday dinner
+    linkAutoChecks(
+      personDiv.querySelector(
+        `input[name="person-${idx}-lodge"][value="friday"]`
+      ) as HTMLInputElement,
+      [
+        personDiv.querySelector(
+          `input[name="person-${idx}-meal"][value="friday-dinner"]`
+        ) as HTMLInputElement,
+      ],
+      updateCostDisplay
+    );
 
-      fridayLodgeCheckbox.addEventListener("change", () => {
-        if (fridayLodgeCheckbox.checked) {
-          // Turning ON Friday lodge: always turn ON Friday dinner
-          if (!fridayDinnerCheckbox.checked) {
-            fridayDinnerCheckbox.checked = true;
-            wasAutoChecked = true;
-            updateCostDisplay();
-          }
-        } else {
-          // Turning OFF Friday lodge: only turn OFF Friday dinner if it was auto-checked
-          if (wasAutoChecked) {
-            fridayDinnerCheckbox.checked = false;
-            wasAutoChecked = false;
-            updateCostDisplay();
-          }
-        }
-      });
-
-      // Track manual changes to Friday dinner
-      fridayDinnerCheckbox.addEventListener("change", () => {
-        // If user manually checks/unchecks, it's no longer auto-checked
-        if (fridayLodgeCheckbox.checked) {
-          wasAutoChecked = false;
-        }
-      });
-
-      // Also check Friday dinner on initialization if Friday lodge is already checked
-      if (fridayLodgeCheckbox.checked && !fridayDinnerCheckbox.checked) {
-        fridayDinnerCheckbox.checked = true;
-        wasAutoChecked = true;
-      }
-    }
-
-    // Auto-check Saturday breakfast & lunch when Friday lodge is selected
-    const saturdayLodgeCheckbox = personDiv.querySelector(
-      `input[name="person-${idx}-lodge"][value="saturday"]`
-    ) as HTMLInputElement;
-    const saturdayBreakfastCheckbox = personDiv.querySelector(
-      `input[name="person-${idx}-meal"][value="saturday-breakfast"]`
-    ) as HTMLInputElement;
-    const saturdayLunchCheckbox = personDiv.querySelector(
-      `input[name="person-${idx}-meal"][value="saturday-lunch"]`
-    ) as HTMLInputElement;
-
-    if (saturdayLodgeCheckbox && saturdayBreakfastCheckbox && saturdayLunchCheckbox) {
-      // Track if Saturday breakfast/lunch were auto-checked (not manually checked by user)
-      let wasBreakfastAutoChecked = false;
-      let wasLunchAutoChecked = false;
-
-      saturdayLodgeCheckbox.addEventListener("change", () => {
-        if (saturdayLodgeCheckbox.checked) {
-          // Turning ON Friday lodge: auto-check Saturday breakfast & lunch if not already checked
-          let changed = false;
-
-          if (!saturdayBreakfastCheckbox.checked) {
-            saturdayBreakfastCheckbox.checked = true;
-            wasBreakfastAutoChecked = true;
-            changed = true;
-          }
-
-          if (!saturdayLunchCheckbox.checked) {
-            saturdayLunchCheckbox.checked = true;
-            wasLunchAutoChecked = true;
-            changed = true;
-          }
-
-          if (changed) {
-            updateCostDisplay();
-          }
-        } else {
-          // Turning OFF Friday lodge: only uncheck if they were auto-checked
-          let changed = false;
-
-          if (wasBreakfastAutoChecked) {
-            saturdayBreakfastCheckbox.checked = false;
-            wasBreakfastAutoChecked = false;
-            changed = true;
-          }
-
-          if (wasLunchAutoChecked) {
-            saturdayLunchCheckbox.checked = false;
-            wasLunchAutoChecked = false;
-            changed = true;
-          }
-
-          if (changed) {
-            updateCostDisplay();
-          }
-        }
-      });
-
-      // Track manual changes to Saturday breakfast
-      saturdayBreakfastCheckbox.addEventListener("change", () => {
-        if (saturdayLodgeCheckbox.checked) {
-          wasBreakfastAutoChecked = false;
-        }
-        updateCostDisplay();
-      });
-
-      // Track manual changes to Saturday lunch
-      saturdayLunchCheckbox.addEventListener("change", () => {
-        if (saturdayLodgeCheckbox.checked) {
-          wasLunchAutoChecked = false;
-        }
-        updateCostDisplay();
-      });
-
-      // Also check Saturday breakfast & lunch on initialization
-      // if Friday lodge is already checked
-      if (saturdayLodgeCheckbox.checked) {
-        let changed = false;
-
-        if (!saturdayBreakfastCheckbox.checked) {
-          saturdayBreakfastCheckbox.checked = true;
-          wasBreakfastAutoChecked = true;
-          changed = true;
-        }
-
-        if (!saturdayLunchCheckbox.checked) {
-          saturdayLunchCheckbox.checked = true;
-          wasLunchAutoChecked = true;
-          changed = true;
-        }
-
-        if (changed) {
-          updateCostDisplay();
-        }
-      }
-    }
-
+    // Friday lodge → Saturday breakfast + lunch
+    linkAutoChecks(
+      personDiv.querySelector(
+        `input[name="person-${idx}-lodge"][value="saturday"]`
+      ) as HTMLInputElement,
+      [
+        personDiv.querySelector(
+          `input[name="person-${idx}-meal"][value="saturday-breakfast"]`
+        ) as HTMLInputElement,
+        personDiv.querySelector(
+          `input[name="person-${idx}-meal"][value="saturday-lunch"]`
+        ) as HTMLInputElement,
+      ],
+      updateCostDisplay
+    );
 
     const mealCheckboxes = personDiv.querySelectorAll(
       `input[name="person-${idx}-meal"]`
