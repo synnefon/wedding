@@ -229,6 +229,9 @@ function initializeScheduleTabs() {
     targetButton?.classList.add("active");
     targetPanel?.classList.add("active");
     updateArrowStates(targetTab);
+
+    const tabContent = document.querySelector(".tab-content");
+    if (tabContent) tabContent.scrollTop = 0;
   }
 
   function updateArrowStates(currentTab: string) {
